@@ -1,0 +1,174 @@
+       IDENTIFICATION DIVISION.                                         00010001
+       PROGRAM-ID. CUR                                                  00020001
+       ENVIRONMENT DIVISION.                                            00030001
+       INPUT-OUTPUT SECTION.                                            00040001
+       FILE-CONTROL.                                                    00050001
+             SELECT TO001-PS ASSIGN TO DD1                              00060005
+                             ORGANIZATION IS SEQUENTIAL                 00070001
+                             ACCESS IS SEQUENTIAL                       00080001
+                             FILE STATUS IS WS05-FST-TO001.             00090006
+       DATA DIVISION.                                                   00100001
+       FILE SECTION.                                                    00110001
+       FD TO001-PS.                                                     00120005
+       01 TO001-PS-REC.                                                 00130005
+           05 TO001-ID             PIC X(03).                           00140005
+           05 FILLER               PIC X(01).                           00150001
+           05 TO001-NAME           PIC X(10).                           00160005
+           05 FILLER               PIC X(01).                           00170001
+           05 TO001-LOC            PIC X(09).                           00180005
+           05 FILLER               PIC X(01).                           00190001
+           05 TO001-SAL            PIC 9(04).                           00200005
+           05 FILLER               PIC X(01).                           00210001
+           05 TO001-OPERATION      PIC X(01).                           00220005
+           05 FILLER               PIC X(49).                           00230001
+       WORKING-STORAGE SECTION.                                         00240001
+       01 WS01-VARS.                                                    00250001
+             05 WS05-FST-TO001 PIC 9(02).                               00260007
+             05 WS05-SQLCODE PIC S9(04) SIGN LEADING SEPARATE.          00270001
+             05 WS05-NULL-IND PIC S9(04) COMP.                          00280001
+             05 WS05-LRECL PIC S9(09) COMP VALUE 80.                    00290001
+             05 WS05-ERR-MSG.                                           00300001
+                10 WS10-ERR-LEN PIC S9(04) COMP VALUE 800.              00310001
+                10 WS10-ERR-TXT PIC X(80) OCCURS 10 TIMES.              00320001
+                EXEC SQL                                                00330001
+                   INCLUDE SQLCA                                        00340001
+                END-EXEC.                                               00350001
+                EXEC SQL                                                00360001
+                   INCLUDE DCLSUD                                       00370001
+                END-EXEC.                                               00380001
+                EXEC SQL                                                00381002
+                   DECLARE DEEBEE CURSOR                                00382003
+                   FOR                                                  00383002
+                    SELECT                                              00383102
+                       ID                                               00384002
+                       ,NAME                                            00385002
+                       ,LOC                                             00385102
+                       ,SAL                                             00385202
+                    FROM                                                00386002
+                        SUD                                             00387012
+                END-EXEC.                                               00389002
+       PROCEDURE DIVISION.                                              00390001
+       0000-MAIN-PARA.                                                  00400001
+            PERFORM 1000-INIT-PARA                                      00410001
+            PERFORM 3000-PROC-PARA                                      00420001
+               THRU 3000-PROC-PARA-EXIT                                 00430001
+            PERFORM 9000-TERM-PARA                                      00440001
+            .                                                           00450001
+       1000-INIT-PARA.                                                  00460001
+            CONTINUE                                                    00470001
+            .                                                           00480001
+       9000-TERM-PARA.                                                  00490001
+            STOP RUN                                                    00500001
+            .                                                           00510001
+       3000-PROC-PARA.                                                  00520001
+             PERFORM 3100-OPEN-PARA                                     00530001
+                 THRU 3100-OPEN-PARA-EXIT                               00540001
+             UNTIL WS05-FST-TO001 = 10                                  00570008
+             PERFORM 3200-CLOS-PARA                                     00580017
+                 THRU 3200-CLOS-PARA-EXIT                               00590017
+             .                                                          00600001
+       3000-PROC-PARA-EXIT.                                             00610001
+             EXIT                                                       00620001
+             .                                                          00630001
+       3100-OPEN-PARA.                                                  00700001
+            OPEN OUTPUT TO001-PS                                        00710005
+            EVALUATE TRUE                                               00720001
+            WHEN WS05-FST-TO001 = 00                                    00730005
+                DISPLAY 'TO001 OPENED'                                  00740008
+                PERFORM 3110-CUR-PARA                                   00751017
+                   THRU 3110-CUR-PARA-EXIT                              00752017
+            WHEN OTHER                                                  00753017
+                DISPLAY 'OPEN FAILED' WS05-FST-TO001                    00760005
+                PERFORM 9000-TERM-PARA                                  00770001
+            END-EVALUATE                                                00780001
+            .                                                           00790001
+       3100-OPEN-PARA-EXIT.                                             00800018
+             EXIT                                                       00810018
+             .                                                          00820018
+       3110-CUR-PARA.                                                   01020017
+             PERFORM 3111-OPN-PARA                                      01030017
+                THRU 3111-OPN-PARA-EXIT                                 01040017
+             PERFORM 3112-FETCH-PARA                                    01050017
+                THRU 3112-FETCH-PARA-EXIT                               01060017
+             UNTIL SQLCODE = +100                                       01061016
+             PERFORM 3113-CLS-PARA                                      01070017
+                THRU 3113-CLS-PARA-EXIT                                 01080017
+             .                                                          01090002
+       3110-CUR-PARA-EXIT.                                              01180017
+             EXIT                                                       01190001
+             .                                                          01200001
+       3111-OPN-PARA.                                                   01210017
+             EXEC SQL                                                   01230001
+                 OPEN DEEBEE                                            01240002
+             END-EXEC.                                                  01260001
+             EVALUATE TRUE                                              01270001
+             WHEN SQLCODE = 0                                           01280001
+                 DISPLAY 'DEEBEE OPENED'                                01290002
+             WHEN OTHER                                                 01300001
+                 DISPLAY 'OPEN FAIL' SQLCODE                            01310011
+                 CALL 'DSNTIAR' USING SQLCA WS05-ERR-MSG WS05-LRECL     01310109
+                 DISPLAY WS05-ERR-MSG                                   01310209
+                 PERFORM 9000-TERM-PARA                                 01311002
+             END-EVALUATE                                               01340001
+             .                                                          01350001
+       3111-OPN-PARA-EXIT.                                              01360017
+            EXIT                                                        01370017
+             .                                                          01380001
+       3112-FETCH-PARA.                                                 01390017
+            INITIALIZE DCLSUD                                           01400005
+             EXEC SQL                                                   01410001
+                FETCH DEEBEE                                            01420002
+                INTO                                                    01430002
+                :HV-ID                                                  01440002
+                ,:HV-NAME                                               01441002
+                ,:HV-LOC                                                01442002
+                ,:HV-SAL :WS05-NULL-IND                                 01443002
+             END-EXEC.                                                  01450001
+             EVALUATE TRUE                                              01460001
+             WHEN WS05-NULL-IND = 0                                     01470002
+                 DISPLAY 'NOT HAVINGA NULL VALUE'                       01480002
+                 EVALUATE TRUE                                          01480110
+                 WHEN SQLCODE = 0                                       01480210
+                 PERFORM 3113-WRITE-PARA                                01480317
+                     THRU 3113-WRITE-PARA-EXIT                          01480417
+                 END-EVALUATE                                           01480510
+             WHEN WS05-NULL-IND = -1                                    01481002
+                 DISPLAY 'HAVING NULL'                                  01482002
+             WHEN OTHER                                                 01490001
+                 DISPLAY 'SOMETHING WENT WRONG' WS05-SQLCODE            01500002
+                 CALL 'DSNTIAR' USING SQLCA WS05-ERR-MSG WS05-LRECL     01510001
+                 DISPLAY WS05-ERR-MSG                                   01520003
+             END-EVALUATE                                               01530001
+             .                                                          01540001
+       3112-FETCH-PARA-EXIT.                                            01550017
+             EXIT                                                       01560001
+             .                                                          01570001
+       3113-CLS-PARA.                                                   01580017
+             EXEC SQL                                                   01590002
+                CLOSE DEEBEE                                            01600002
+             END-EXEC.                                                  01610002
+       3113-CLS-PARA-EXIT.                                              01890017
+             EXIT                                                       01900001
+             .                                                          01910001
+       3200-CLOS-PARA.                                                  01920017
+            CLOSE TO001-PS                                              01930005
+            .                                                           01940002
+       3200-CLOS-PARA-EXIT.                                             01950017
+            EXIT                                                        01960002
+            .                                                           01970002
+       3113-WRITE-PARA.                                                 01980017
+            MOVE HV-ID         TO TO001-ID                              01990013
+            MOVE HV-NAME-TEXT  TO TO001-NAME                            02000013
+            MOVE HV-LOC        TO TO001-LOC                             02010013
+            MOVE HV-SAL        TO TO001-SAL                             02020013
+            WRITE TO001-PS-REC                                          02030014
+            EVALUATE TRUE                                               02040010
+            WHEN WS05-FST-TO001 = 0                                     02050015
+             DISPLAY 'WRITTEN'                                          02060010
+            WHEN OTHER                                                  02070010
+             DISPLAY 'NOT WRITTEN' WS05-FST-TO001                       02080013
+            END-EVALUATE                                                02090010
+            .                                                           02100010
+       3113-WRITE-PARA-EXIT.                                            02110017
+            EXIT                                                        02120010
+            .                                                           02130010

@@ -1,0 +1,192 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. SEL.                                                 00020003
+       ENVIRONMENT DIVISION.                                            00030000
+       INPUT-OUTPUT SECTION.                                            00040000
+       FILE-CONTROL.                                                    00050000
+             SELECT TI001-PS ASSIGN TO DD1                              00060000
+                             ORGANIZATION IS SEQUENTIAL                 00070000
+                             ACCESS IS SEQUENTIAL                       00080000
+                             FILE STATUS IS WS05-FST-TI001.             00090000
+       DATA DIVISION.                                                   00100000
+       FILE SECTION.                                                    00110000
+       FD TI001-PS.                                                     00120000
+       01 TI001-PS-REC.                                                 00130000
+           05 TI001-ID             PIC X(03).                           00140002
+           05 FILLER               PIC X(01).                           00150000
+           05 TI001-NAME           PIC X(10).                           00160000
+           05 FILLER               PIC X(01).                           00170000
+           05 TI001-LOC            PIC X(09).                           00180002
+           05 FILLER               PIC X(01).                           00190000
+           05 TI001-SAL            PIC 9(04).                           00200000
+           05 FILLER               PIC X(01).                           00210000
+           05 TI001-OPERATION      PIC X(01).                           00220002
+           05 FILLER               PIC X(49).                           00230002
+       WORKING-STORAGE SECTION.                                         00240000
+       01 WS01-VARS.                                                    00250000
+             05 WS05-FST-TI001 PIC 9(02).                               00260000
+             05 WS05-SQLCODE PIC S9(04) SIGN LEADING SEPARATE.          00270000
+             05 WS05-NULL-IND PIC S9(04) COMP.                          00280000
+             05 WS05-LRECL PIC S9(09) COMP VALUE 80.                    00290000
+             05 WS05-ERR-MSG.                                           00300000
+                10 WS10-ERR-LEN PIC S9(04) COMP VALUE 800.              00310000
+                10 WS10-ERR-TXT PIC X(80) OCCURS 10 TIMES.              00320000
+                EXEC SQL                                                00330000
+                   INCLUDE SQLCA                                        00340000
+                END-EXEC.                                               00350000
+                EXEC SQL                                                00360000
+                   INCLUDE DCLSUD                                       00370000
+                END-EXEC.                                               00380000
+       PROCEDURE DIVISION.                                              00390000
+       0000-MAIN-PARA.                                                  00400000
+            PERFORM 1000-INIT-PARA                                      00410000
+            PERFORM 3000-PROC-PARA                                      00420000
+               THRU 3000-PROC-PARA-EXIT                                 00430000
+            PERFORM 9000-TERM-PARA                                      00440000
+            .                                                           00450000
+       1000-INIT-PARA.                                                  00460000
+            CONTINUE                                                    00470000
+            .                                                           00480000
+       9000-TERM-PARA.                                                  00490000
+            STOP RUN                                                    00500000
+            .                                                           00510000
+       3000-PROC-PARA.                                                  00520000
+             PERFORM 3100-OPEN-PARA                                     00530000
+                 THRU 3100-OPEN-PARA-EXIT                               00540000
+             PERFORM 3200-READ-PARA                                     00550000
+                 THRU 3200-READ-PARA-EXIT                               00560000
+             UNTIL WS05-FST-TI001 = 10                                  00570000
+             PERFORM 3300-CLOS-PARA                                     00580000
+                 THRU 3300-CLOS-PARA-EXIT                               00590000
+             .                                                          00600000
+       3000-PROC-PARA-EXIT.                                             00610000
+             EXIT                                                       00620000
+             .                                                          00630000
+       3300-CLOS-PARA.                                                  00640000
+            CLOSE TI001-PS                                              00650000
+            .                                                           00660000
+       3300-CLOS-PARA-EXIT.                                             00670000
+            EXIT                                                        00680000
+            .                                                           00690000
+       3100-OPEN-PARA.                                                  00700000
+            OPEN INPUT TI001-PS                                         00710000
+            EVALUATE TRUE                                               00720000
+            WHEN WS05-FST-TI001 = 00                                    00730000
+                DISPLAY 'TI001 OPENED'                                  00740000
+            WHEN OTHER                                                  00750000
+                DISPLAY 'OPEN FAILED' WS05-FST-TI001                    00760000
+                PERFORM 9000-TERM-PARA                                  00770000
+            END-EVALUATE                                                00780000
+            .                                                           00790000
+       3100-OPEN-PARA-EXIT.                                             00800000
+            EXIT                                                        00810000
+            .                                                           00820000
+       3200-READ-PARA.                                                  00830000
+            MOVE SPACES TO TI001-PS-REC                                 00840000
+            INITIALIZE DCLSUD                                           00850000
+            READ TI001-PS                                               00860000
+            EVALUATE TRUE                                               00870000
+            WHEN WS05-FST-TI001 = 00                                    00880000
+                DISPLAY 'READ SUCCESSFUL'                               00890000
+                PERFORM 3210-OPR-PARA                                   00891001
+                    THRU 3210-OPR-PARA-EXIT                             00892001
+                DISPLAY 'OPERATION SUCCESFUL'                           00893001
+            WHEN WS05-FST-TI001 = 10                                    00900000
+                 DISPLAY 'END OF THE RECORD'                            00910000
+            WHEN OTHER                                                  00920000
+                 DISPLAY 'READ FAILED' WS05-FST-TI001                   00930000
+            END-EVALUATE                                                00940000
+            .                                                           00950000
+       3200-READ-PARA-EXIT.                                             00960000
+            EXIT                                                        00970000
+            .                                                           00980000
+       3210-OPR-PARA.                                                   00990001
+            EVALUATE TRUE                                               01000001
+            WHEN TI001-OPERATION = 'D'                                  01010001
+            PERFORM 3211-DEL-PARA                                       01020001
+              THRU 3211-DEL-PARA-EXIT                                   01030001
+            DISPLAY 'DEL PERFORMED'                                     01040001
+            WHEN TI001-OPERATION = 'U'                                  01050001
+            PERFORM 3212-UPDATE-PARA                                    01060001
+                THRU 3212-UPDATE-PARA-EXIT                              01070001
+            DISPLAY 'UPDATE PERFORMED'                                  01080001
+            WHEN TI001-OPERATION = 'S'                                  01090001
+            PERFORM 3213-SELECT-PARA                                    01100001
+                THRU 3213-SELECT-PARA-EXIT                              01110001
+            DISPLAY 'SELECT PERFORMED'                                  01120001
+            END-EVALUATE                                                01130001
+            .                                                           01140001
+       3210-OPR-PARA-EXIT.                                              01320001
+             EXIT                                                       01330000
+             .                                                          01340000
+       3211-DEL-PARA.                                                   01350001
+             MOVE TI001-ID TO HV-ID                                     01360000
+             EXEC SQL                                                   01370000
+                 DELETE FROM SUD                                        01380000
+                 WHERE ID = :HV-ID                                      01390000
+             END-EXEC.                                                  01400000
+             EVALUATE TRUE                                              01410000
+             WHEN SQLCODE = 0                                           01420000
+                 DISPLAY 'DELETE SUCCESS'                               01430000
+             WHEN OTHER                                                 01440000
+                 DISPLAY 'DELETE FAIL' WS05-SQLCODE                     01450000
+                 CALL 'DSNTIAR' USING SQLCA WS05-ERR-MSG WS05-LRECL     01460000
+                 DISPLAY WS05-ERR-MSG                                   01470000
+             END-EVALUATE                                               01480000
+             .                                                          01490000
+       3211-DEL-PARA-EXIT.                                              01500001
+             EXIT                                                       01510000
+             .                                                          01520000
+       3212-UPDATE-PARA.                                                01530001
+             MOVE TI001-ID TO HV-ID                                     01540000
+             EXEC SQL                                                   01550000
+                UPDATE SUD                                              01560000
+                SET SAL = SAL*1.10                                      01570000
+                WHERE ID = :HV-ID                                       01580000
+             END-EXEC.                                                  01590000
+             EVALUATE TRUE                                              01600000
+             WHEN SQLCODE = 0                                           01610000
+                 DISPLAY 'UPDATE SUCCESS'                               01620000
+             WHEN OTHER                                                 01630000
+                 DISPLAY 'UPDATE FAIL' WS05-SQLCODE                     01640000
+                 CALL 'DSNTIAR' USING SQLCA WS05-ERR-MSG WS05-LRECL     01650000
+                 DISPLAY WS05-ERR-MSG                                   01660000
+             END-EVALUATE                                               01670000
+             .                                                          01680000
+       3212-UPDATE-PARA-EXIT.                                           01690001
+             EXIT                                                       01700000
+             .                                                          01710000
+       3213-SELECT-PARA.                                                01720001
+             MOVE TI001-ID TO HV-ID                                     01730000
+             EXEC SQL                                                   01740000
+                  SELECT                                                01750000
+                    ID                                                  01760000
+                    ,NAME                                               01770000
+                    ,SAL                                                01780000
+                  INTO                                                  01790000
+                    :HV-ID                                              01800000
+                    ,:HV-NAME                                           01810000
+                    ,:HV-SAL :WS05-NULL-IND                             01820000
+                  FROM                                                  01830000
+                    SUD                                                 01840000
+                    WHERE ID = :HV-ID                                   01850000
+             END-EXEC                                                   01860000
+             EVALUATE TRUE                                              01870000
+             WHEN SQLCODE = 0                                           01880000
+                EVALUATE TRUE                                           01890000
+                WHEN WS05-NULL-IND = 0                                  01900000
+                   DISPLAY 'THE ID:' HV-ID                              01910000
+                   DISPLAY 'THE NAME:' HV-NAME-TEXT                     01920000
+                   DISPLAY 'THE SAL:' HV-SAL                            01930000
+                WHEN OTHER                                              01940000
+                   DISPLAY ' SAL HAS NULL VALUE'                        01950000
+                END-EVALUATE                                            01960000
+             WHEN SQLCODE = +100                                        01970000
+                DISPLAY 'ID:' HV-ID 'NOT FOUND'                         01980000
+             WHEN OTHER                                                 01990000
+                CALL 'DSNTIAR' USING SQLCA WS05-ERR-MSG WS05-LRECL      02000000
+             END-EVALUATE                                               02010000
+             .                                                          02020000
+       3213-SELECT-PARA-EXIT.                                           02030001
+             EXIT                                                       02040000
+             .                                                          02050000
+

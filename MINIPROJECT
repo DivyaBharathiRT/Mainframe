@@ -1,0 +1,176 @@
+       IDENTIFICATION DIVISION.                                         00010020
+       PROGRAM-ID CA11G021.                                             00020002
+       ENVIRONMENT DIVISION.                                            00030001
+       INPUT-OUTPUT SECTION.                                            00040001
+       FILE-CONTROL.                                                    00050001
+             SELECT TI001-PS ASSIGN TO INPAGTPS                         00060004
+                                ORGANIZATION IS SEQUENTIAL              00070001
+                                ACCESS IS SEQUENTIAL                    00080001
+                                FILE STATUS IS WS05-FST-TI001.          00090001
+             SELECT TO001-KSDS ASSIGN TO OUTAGTKS                       00100004
+                                ORGANIZATION IS INDEXED                 00110001
+                                RECORD KEY IS TO001-AGENT-CODE          00111004
+                                ACCESS IS RANDOM                        00120002
+                                FILE STATUS IS WS05-FST-TO001.          00130001
+       DATA DIVISION.                                                   00140001
+       FILE SECTION.                                                    00150001
+       FD TI001-PS.                                                     00160001
+       01 TI001-PS-REC.                                                 00170001
+           05 TI001-AGENT-CODE   PIC X(05).                             00180006
+           05 FILLER             PIC X(01).                             00190002
+           05 TI001-POLICY-COUNT PIC 9(03).                             00200006
+           05 FILLER             PIC X(01).                             00210002
+           05 TI001-AGENT-STATUS PIC X(08).                             00220006
+           05 FILLER             PIC X(01).                             00230002
+           05 TI001-POLICY-TYPE  PIC A(09).                             00240006
+           05 FILLER             PIC X(01).                             00250002
+           05 TI001-COMMISION    PIC 9(03).99.                          00260003
+           05 FILLER             PIC X(45).                             00270004
+       FD TO001-KSDS.                                                   00320005
+       01 TO001-KSDS-REC.                                               00330005
+           05 TO001-AGENT-CODE   PIC X(05).                             00331006
+           05 FILLER             PIC X(01).                             00332002
+           05 TO001-POLICY-COUNT PIC 9(03).                             00333006
+           05 FILLER             PIC X(01).                             00334002
+           05 TO001-AGENT-STATUS PIC A(08).                             00335006
+           05 FILLER             PIC X(01).                             00336002
+           05 TO001-POLICY-TYPE  PIC A(09).                             00337006
+           05 FILLER             PIC X(01).                             00338002
+           05 TO001-COMMISION    PIC 9(03).99.                          00339003
+           05 FILLER             PIC X(01).                             00339103
+           05 TO001-TOTAL-COMM   PIC 9(07).9(02).                       00339206
+           05 FILLER             PIC X(01).                             00339304
+           05 TO001-GRADE        PIC A(09).                             00339403
+           05 FILLER             PIC X(24).                             00339504
+       WORKING-STORAGE SECTION.                                         00500001
+       01 WS01-VARS.                                                    00510001
+            05 WS05-FST-TI001    PIC 9(02).                             00520004
+            05 WS05-FST-TO001    PIC 9(02).                             00530004
+            05 WS05-TOTAL-COMM   PIC 9(07)V9(02).                       00540021
+            05 WS05-COMMISION    PIC 9(03)V9(02).                       00541007
+            05 WS05-POLICY-COUNT PIC 9(03).                             00542006
+       PROCEDURE DIVISION.                                              00550001
+       0000-MAIN-PARA.                                                  00560001
+             PERFORM 1000-INIT-PARA                                     00570001
+             PERFORM 3000-PROC-PARA                                     00580001
+                THRU 3000-PROC-PARA-EXIT                                00590001
+             PERFORM 9000-TERM-PARA                                     00600001
+             .                                                          00610001
+       1000-INIT-PARA.                                                  00620001
+             CONTINUE                                                   00630001
+             .                                                          00640001
+       9000-TERM-PARA.                                                  00650001
+             STOP RUN                                                   00660001
+             .                                                          00670001
+       3000-PROC-PARA.                                                  00680001
+             PERFORM 3100-OPEN-PARA                                     00690001
+                THRU 3100-OPEN-PARA-EXIT                                00700001
+             PERFORM 3200-READ-PARA                                     00710001
+                THRU 3200-READ-PARA-EXIT                                00720001
+             UNTIL WS05-FST-TI001 = 10                                  00730001
+             PERFORM 3300-CLOS-PARA                                     00740001
+                THRU 3300-CLOS-PARA-EXIT                                00750001
+             .                                                          00760001
+       3000-PROC-PARA-EXIT.                                             00770001
+             EXIT                                                       00780001
+             .                                                          00790001
+       3300-CLOS-PARA.                                                  00800001
+             CLOSE TI001-PS TO001-KSDS                                  00810005
+             .                                                          00820001
+       3300-CLOS-PARA-EXIT.                                             00830001
+             EXIT                                                       00840001
+             .                                                          00850001
+       3100-OPEN-PARA.                                                  00860001
+             OPEN INPUT TI001-PS                                        00870001
+             EVALUATE TRUE                                              00880001
+             WHEN WS05-FST-TI001 = 00                                   00890001
+               DISPLAY 'TI001 OPENED'                                   00900001
+             WHEN OTHER                                                 00910001
+               DISPLAY 'TI001 OPEN FAILED' WS05-FST-TI001               00920001
+               PERFORM 9000-TERM-PARA                                   00930001
+             END-EVALUATE                                               00940001
+             OPEN OUTPUT TO001-KSDS                                     00950005
+             EVALUATE TRUE                                              00960001
+             WHEN WS05-FST-TO001 = 00                                   00970001
+               DISPLAY 'TO001 OPENED'                                   00980001
+             WHEN OTHER                                                 00990001
+               DISPLAY 'TO001 OPEN FAILED' WS05-FST-TO001               01000001
+               PERFORM 9000-TERM-PARA                                   01010001
+             END-EVALUATE                                               01020001
+             .                                                          01030001
+       3100-OPEN-PARA-EXIT.                                             01040001
+           EXIT                                                         01050001
+           .                                                            01060001
+       3200-READ-PARA.                                                  01070001
+           MOVE SPACES TO TI001-PS-REC TO001-KSDS-REC                   01080003
+           READ TI001-PS                                                01090001
+           EVALUATE TRUE                                                01100001
+           WHEN WS05-FST-TI001 = 00                                     01110001
+               PERFORM 3210-VALIDATE-PARA                               01120001
+                  THRU 3210-VALIDATE-PARA-EXIT                          01130001
+           WHEN WS05-FST-TI001 = 10                                     01140001
+               DISPLAY 'ALL RECORDS PROCESSED'                          01150005
+           WHEN OTHER                                                   01160001
+               DISPLAY 'TI001-READ FAILED' WS05-FST-TI001               01170005
+           END-EVALUATE                                                 01180001
+           .                                                            01190001
+       3200-READ-PARA-EXIT.                                             01200001
+           EXIT                                                         01210001
+           .                                                            01220001
+       3210-VALIDATE-PARA.                                              01230020
+           EVALUATE TRUE                                                01240001
+           WHEN TI001-POLICY-COUNT IS NUMERIC             AND           01250025
+              (  TI001-AGENT-STATUS = 'ACTIVE' OR                       01251025
+                TI001-AGENT-STATUS = 'INACTIVE' )         AND           01252025
+                TI001-POLICY-TYPE  IS GREATER THAN SPACES AND           01260006
+                TI001-COMMISION(1:3) IS NUMERIC           AND           01270025
+                TI001-COMMISION(4:1) = '.'                AND           01271025
+                TI001-COMMISION(5:2) IS NUMERIC                         01272004
+                   PERFORM 3211-CALC-PARA                               01280001
+                      THRU 3211-CALC-PARA-EXIT                          01290001
+           END-EVALUATE                                                 01340001
+           .                                                            01350001
+       3210-VALIDATE-PARA-EXIT.                                         01360001
+           EXIT                                                         01370001
+           .                                                            01380001
+       3211-CALC-PARA.                                                  01390001
+           EVALUATE TRUE                                                01410001
+           WHEN TI001-AGENT-STATUS = 'ACTIVE' AND                       01420021
+                TI001-POLICY-COUNT < 300                                01421006
+                    MOVE 'AVERAGE' TO TO001-GRADE                       01422023
+           WHEN TI001-AGENT-STATUS = 'ACTIVE' AND                       01441021
+                TI001-POLICY-COUNT = 300                                01442006
+                    MOVE 'GOOD' TO TO001-GRADE                          01443021
+           WHEN TI001-AGENT-STATUS = 'ACTIVE' AND                       01444021
+                TI001-POLICY-COUNT > 300                                01445006
+                   MOVE 'EXCELLENT' TO TO001-GRADE                      01446021
+           END-EVALUATE                                                 01460001
+           MOVE TI001-COMMISION TO WS05-COMMISION                       01462427
+           MOVE TI001-POLICY-COUNT TO WS05-POLICY-COUNT                 01462627
+           MOVE 0 TO WS05-TOTAL-COMM                                    01462827
+           CALL 'CA21G021' USING WS05-TOTAL-COMM WS05-POLICY-COUNT      01462927
+                                    WS05-COMMISION                      01463026
+           PERFORM 3212-WRITE-PARA                                      01463127
+           THRU 3212-WRITE-PARA-EXIT.                                   01463228
+       3211-CALC-PARA-EXIT.                                             01480001
+           EXIT                                                         01490001
+           .                                                            01500001
+       3212-WRITE-PARA.                                                 01510001
+           MOVE TI001-AGENT-CODE   TO TO001-AGENT-CODE                  01520006
+           MOVE WS05-POLICY-COUNT  TO TO001-POLICY-COUNT                01530006
+           MOVE TI001-AGENT-STATUS TO TO001-AGENT-STATUS                01540006
+           MOVE TI001-POLICY-TYPE  TO TO001-POLICY-TYPE                 01550006
+           MOVE TI001-COMMISION    TO TO001-COMMISION                   01560024
+           MOVE WS05-TOTAL-COMM    TO TO001-TOTAL-COMM                  01570006
+           WRITE TO001-KSDS-REC                                         01600005
+           EVALUATE TRUE                                                01610001
+           WHEN WS05-FST-TO001 = 00                                     01620001
+               DISPLAY ' RECORD WRITTEN'                                01630001
+           WHEN OTHER                                                   01640001
+               DISPLAY 'WRITE FAILED' WS05-FST-TO001                    01650001
+           END-EVALUATE                                                 01660001
+           .                                                            01670001
+       3212-WRITE-PARA-EXIT.                                            01680001
+           EXIT                                                         01690001
+           .                                                            01700001
+

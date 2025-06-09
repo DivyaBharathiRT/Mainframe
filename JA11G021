@@ -1,0 +1,15 @@
+//TECN021A JOB  NOTIFY=TECN021
+//STEP0001 EXEC PGM=IDCAMS
+//SYSPRINT DD SYSOUT=*
+//SYSIN DD *
+  DEFINE CLUSTER( -
+  NAME(TECN021.L1G.AGTCMN.KSDS) -
+  TRACK(10,10)                -
+  RECORDSIZE(80,80)           -
+  CONTROLINTERVALSIZE(512)                 -
+  VOLUME(ZAPRD4)              -
+  KEYS(5,0)                   -
+  FREESPACE(10,10)            -
+  INDEXED)
+/*
+

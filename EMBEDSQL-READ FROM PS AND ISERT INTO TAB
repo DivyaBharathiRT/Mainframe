@@ -1,0 +1,134 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. EMBED.                                               00020000
+       ENVIRONMENT DIVISION.                                            00030000
+       INPUT-OUTPUT SECTION.                                            00040000
+       FILE-CONTROL.                                                    00050007
+             SELECT TI001-PS ASSIGN TO DD1                              00060000
+                              ORGANIZATION IS SEQUENTIAL                00070000
+                              ACCESS IS SEQUENTIAL                      00080000
+                              FILE STATUS IS WS05-FST-TI001.            00090000
+       DATA DIVISION.                                                   00100000
+       FILE SECTION.                                                    00110000
+       FD TI001-PS.                                                     00120000
+       01 TI001-PS-REC.                                                 00130000
+           05 TI001-SNO            PIC X(03).                           00160004
+           05 FILLER               PIC X(01).                           00161001
+           05 TI001-NAME           PIC X(10).                           00170004
+           05 FILLER               PIC X(01).                           00180001
+           05 TI001-DOJ            PIC X(10).                           00230004
+           05 FILLER               PIC X(01).                           00240001
+           05 TI001-SAL            PIC 9(3).9(2).                       00250004
+           05 FILLER               PIC X(01).                           00260001
+           05 TI001-LOC            PIC X(10).                           00270004
+           05 FILLER               PIC X(37).                           00280001
+       WORKING-STORAGE SECTION.                                         00290001
+       01 WS01-VARS.                                                    00300001
+            05 WS05-FST-TI001 PIC 9(02).                                00310001
+            05 WS05-LRECL PIC S9(09) COMP VALUE 80.                     00320001
+            05 WS05-NULL-IND PIC S9(04) COMP.                           00330001
+            05 WS05-SQLCODE PIC S9(04) SIGN LEADING SEPARATE.           00331001
+            05 WS05-ERR-MSG.                                            00340001
+               10 WS10-ERR-LEN PIC S9(04) COMP VALUE 800.               00350001
+               10 WS10-ERR-TXT PIC X(80) OCCURS 10 TIMES.               00360001
+                 EXEC SQL                                               00361002
+                   INCLUDE SQLCA                                        00362002
+                 END-EXEC.                                              00363002
+                 EXEC SQL                                               00364002
+                   INCLUDE DCLCOB                                       00365002
+                 END-EXEC.                                              00366002
+       PROCEDURE DIVISION.                                              00370001
+       0000-MAIN-PARA.                                                  00380002
+              PERFORM 1000-INIT-PARA                                    00390002
+              PERFORM 3000-PROC-PARA                                    00400002
+                 THRU 3000-PROC-PARA-EXIT                               00410011
+              PERFORM 9000-TERM-PARA                                    00420002
+              .                                                         00430002
+       1000-INIT-PARA.                                                  00440002
+              CONTINUE                                                  00450002
+              .                                                         00460002
+       9000-TERM-PARA.                                                  00470002
+              STOP RUN                                                  00480002
+              .                                                         00490002
+       3000-PROC-PARA.                                                  00500002
+              PERFORM 3100-OPEN-PARA                                    00510002
+                 THRU 3100-OPEN-PARA-EXIT                               00520002
+              PERFORM 3200-READ-PARA                                    00530002
+                 THRU 3200-READ-PARA-EXIT                               00540002
+             UNTIL WS05-FST-TI001 = 10                                  00550002
+             PERFORM 3300-CLOS-PARA                                     00560002
+                 THRU 3300-CLOS-PARA-EXIT                               00570002
+             .                                                          00580002
+       3000-PROC-PARA-EXIT.                                             00590002
+             EXIT                                                       00600002
+             .                                                          00610002
+       3300-CLOS-PARA.                                                  00620002
+             CLOSE TI001-PS                                             00630002
+             .                                                          00640002
+       3300-CLOS-PARA-EXIT.                                             00650002
+             EXIT                                                       00660002
+             .                                                          00670002
+       3100-OPEN-PARA.                                                  00680002
+             OPEN INPUT TI001-PS                                        00690002
+             EVALUATE TRUE                                              00700002
+             WHEN WS05-FST-TI001 = 00                                   00710002
+                 DISPLAY 'TI001 OPENED'                                 00720002
+             WHEN OTHER                                                 00730002
+                 DISPLAY 'TI001 OPEN FAILED' WS05-FST-TI001             00740002
+                 PERFORM 9000-TERM-PARA                                 00750002
+             END-EVALUATE                                               00760002
+             .                                                          00761009
+       3100-OPEN-PARA-EXIT.                                             00770002
+             EXIT                                                       00780002
+             .                                                          00790002
+       3200-READ-PARA.                                                  00800002
+            MOVE SPACES TO TI001-PS-REC                                 00810002
+            INITIALIZE DCLCOB                                           00820002
+            READ TI001-PS                                               00820113
+            EVALUATE TRUE                                               00821010
+            WHEN WS05-FST-TI001 = 00                                    00830002
+                DISPLAY 'READ SUCCESSFUL'                               00840002
+                PERFORM 3210-INSERT-PARA                                00850002
+                   THRU 3210-INSERT-PARA-EXIT                           00860002
+            WHEN WS05-FST-TI001 = 10                                    00870002
+                  DISPLAY 'END OF THE RECORD'                           00880002
+            WHEN OTHER                                                  00890002
+                  DISPLAY 'READ FAIL' WS05-FST-TI001                    00900002
+            END-EVALUATE                                                00910002
+            .                                                           00920002
+       3200-READ-PARA-EXIT.                                             00930002
+                 EXIT                                                   00940008
+                 .                                                      00950008
+       3210-INSERT-PARA.                                                00960002
+            MOVE TI001-SNO  TO HV-SNO                                   00970003
+            MOVE TI001-NAME TO HV-NAME-TEXT                             00980002
+            MOVE LENGTH OF HV-NAME-TEXT TO HV-NAME-LEN                  00990002
+            MOVE TI001-DOJ  TO HV-DOJ                                   01000003
+            MOVE TI001-SAL  TO HV-SAL                                   01010003
+            MOVE TI001-LOC  TO HV-LOC                                   01020003
+            EVALUATE TRUE                                               01030003
+            WHEN TI001-LOC = SPACES                                     01040008
+               MOVE -1 TO WS05-NULL-IND                                 01050003
+            WHEN OTHER                                                  01060003
+               MOVE 0 TO WS05-NULL-IND                                  01070003
+            END-EVALUATE                                                01080003
+            .                                                           01090003
+            EXEC SQL                                                    01100003
+                INSERT INTO COB VALUES(                                 01110005
+                :HV-SNO                                                 01120003
+                ,:HV-NAME                                               01130003
+                ,:HV-DOJ                                                01140003
+                ,:HV-SAL                                                01150003
+                ,:HV-LOC                                                01160006
+                )                                                       01170003
+            END-EXEC.                                                   01180003
+            EVALUATE TRUE                                               01181006
+            WHEN SQLCODE = 0                                            01182006
+                DISPLAY 'INSERTED SUCCESSFUL'                           01183006
+            WHEN OTHER                                                  01184006
+                CALL 'DSNTIAR' USING SQLCA WS05-ERR-MSG WS05-LRECL      01185006
+            END-EVALUATE                                                01186006
+            .                                                           01187006
+       3210-INSERT-PARA-EXIT.                                           01190003
+            EXIT                                                        01200012
+            .                                                           01210012
+

@@ -1,0 +1,11 @@
+       IDENTIFICATION DIVISION.                                         00010001
+       PROGRAM-ID. CA21G021.                                            00020007
+       DATA DIVISION.                                                   00030001
+       LINKAGE SECTION.                                                 00040001
+       77 LK77-TOT-COM   PIC 9(07)V9(02).                               00050008
+       77 LK77-POL-COUNT PIC 9(03).                                     00060008
+       77 LK77-COM    PIC 9(03)V9(02).                                  00070008
+       PROCEDURE DIVISION USING LK77-TOT-COM LK77-POL-COUNT LK77-COM.   00080008
+           COMPUTE LK77-TOT-COM = LK77-POL-COUNT * LK77-COM.            00100008
+           GOBACK.                                                      00120001
+

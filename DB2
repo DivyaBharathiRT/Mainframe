@@ -1,0 +1,57 @@
+--DROP TABLE EMP;                                                       00001003
+--CREATE TABLE EMP(                                                     00010011
+--ID     CHAR(05) NOT NULL                                              00020011
+--,NAME   VARCHAR(10)                                                   00030011
+--,DOJ    DATE                                                          00040011
+--,SAL    DECIMAL(7,2)                                                  00050011
+--,DID    CHAR(03) REFERENCES DETP(DID) ON DELETE SET NULL              00060011
+--,GENDER CHAR(01) CHECK(GENDER IN('M','F','O'))                        00070011
+--,PRIMARY KEY(ID)                                                      00080011
+--) IN SHRDB4.SHRTS4;                                                   00090011
+--CREATE UNIQUE INDEX IDX002 ON EMP(ID);                                00100011
+--INSERT INTO EMP VALUES (                                              00101014
+--'I0001'                                                               00102014
+--,'TOMMY'                                                              00103014
+--,'2022-12-30'                                                         00104014
+--,12345.67                                                             00105014
+--,'D01'                                                                00106014
+--,'M'                                                                  00107014
+-- );                                                                   00108014
+SELECT * FROM EMP;                                                      00109011
+SELECT * FROM DETP;                                                     00109114
+DELETE FROM DETP WHERE DID='D01';                                       00109215
+SELECT * FROM DETP;                                                     00109314
+SELECT * FROM EMP;                                                      00109414
+--CREATE TABLE DETP (                                                   00110004
+--     DID CHAR(03) NOT NULL PRIMARY KEY                                00120004
+--     ,HOD CHAR(10)                                                    00130004
+--     ,NO_OF_EMP  NUMERIC                                              00140004
+--     ) IN SHRDB4.SHRTS4;                                              00150004
+--CREATE UNIQUE INDEX IDX99 ON DETP(DID);                               00160005
+--INSERT INTO DETP VALUES (                                             00170006
+--     'D01'                                                            00180006
+--     ,'MONKEY'                                                        00190006
+--     ,23                                                              00200006
+--     );                                                               00210006
+--INSERT INTO DETP VALUES (                                             00220009
+--    'D02'                                                             00230009
+--     ,'DONKEY'                                                        00240009
+--     ,20                                                              00250009
+--     );                                                               00260009
+--INSERT INTO DETP VALUES (                                             00261010
+--    'D03'                                                             00262010
+--     ,'SONKEY'                                                        00263010
+--     ,20                                                              00264010
+--     );                                                               00265010
+--INSERT INTO DETP VALUES (                                             00266010
+--    'D04'                                                             00267010
+--     ,'QONKEY'                                                        00268010
+--     ,12                                                              00269010
+--     );                                                               00269110
+--INSERT INTO DETP VALUES (                                             00269210
+--    'D05'                                                             00269310
+--     ,'PONKEY'                                                        00269410
+--     ,02                                                              00269510
+--     );                                                               00269610
+--SELECT * FROM DETP;                                                   00270010
+

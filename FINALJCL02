@@ -1,0 +1,55 @@
+//TECN021A JOB  NOTIFY=TECN021                                          00010000
+// JCLLIB ORDER=TECN021.TAM.MYPROC                                      00020000
+//STEP010  EXEC PROC=KSDSCRT                                            00030000
+//STEP020  EXEC PGM=IDCAMS                                              00040000
+//SYSPRINT DD   SYSOUT=*                                                00050000
+//SYSIN    DD *                                                         00060000
+  PRINT INDATASET(TECN021.TAM.ASSMT02.SHARE.PS2)-                       00070000
+  CHAR COUNT(1)                                                         00080000
+/*                                                                      00090000
+// IF ( STEP020.RC EQ 0 ) THEN                                          00100000
+//STEP030  EXEC PGM=IDCAMS                                              00110000
+//SYSPRINT DD   SYSOUT=*                                                00120000
+//SYSIN    DD *                                                         00130000
+  REPRO INDATASET(TECN021.TAM.ASSMT02.SHARE.PS2)-                       00140000
+        OUTDATASET(TECN021.TAM.ASSMT02.SHARE.KSDS)                      00150000
+/*                                                                      00160000
+// ENDIF                                                                00170000
+// IF ( STEP020.RC EQ 0 ) THEN                                          00180000
+//STEP040  EXEC PGM=IEBGENER                                            00190000
+//SYSPRINT DD   SYSOUT=*                                                00200000
+//SYSIN    DD   DUMMY                                                   00210000
+//SYSUT1   DD *                                                         00220000
+DATASET IS EMPTY                                                        00230000
+/*                                                                      00231000
+//SYSUT2   DD   SYSOUT=*                                                00240000
+// ENDIF                                                                00250000
+//STEP050  EXEC PGM=IDCAMS                                              00260001
+//SYSPRINT DD   SYSOUT=*                                                00270001
+//SYSIN    DD *                                                         00280001
+  DEFINE AIX(-                                                          00290001
+         NAME(TECN021.TAM.ASSMT02.SHARE.AIX)-                           00300001
+         RELATE(TECN021.TAM.ASSMT02.SHARE.KSDS)-                        00310001
+         TRACK(10,10)-                                                  00320001
+         CONTROLINTERVALSIZE(512)-                                      00330001
+         VOLUME(ZAPRD4)-                                                00340001
+         RECORDSIZE(80,80)-                                             00350001
+         FREESPACE(10,10)-                                              00360001
+         KEYS(20,10)-                                                   00370001
+         UNIQUEKEY)                                                     00380001
+/*                                                                      00390001
+//STEP060  EXEC PGM=IDCAMS                                              00400001
+//SYSPRINT DD   SYSOUT=*                                                00410001
+//SYSIN    DD *                                                         00420001
+  BLDINDEX-                                                             00430001
+  INDATASET(TECN021.TAM.ASSMT02.SHARE.KSDS)-                            00440001
+  OUTDATASET(TECN021.TAM.ASSMT02.SHARE.AIX)                             00450001
+/*                                                                      00460001
+//STEP070  EXEC PGM=IDCAMS                                              00470001
+//SYSPRINT DD   SYSOUT=*                                                00480001
+//SYSIN    DD *                                                         00490001
+  DEFINE PATH(-                                                         00500001
+         NAME(TECN021.TAM.ASSMT02.SHARE.PATH)-                          00510001
+         PATHENTRY(TECN021.TAM.ASSMT02.SHARE.AIX))                      00520001
+/*                                                                      00530001
+
