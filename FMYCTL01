@@ -1,0 +1,12 @@
+  DEFINE CLUSTER(-                                                      00010000
+         NAME(TECN021.TAM.ASSMT02.SHARE.KSDS)-                          00020000
+         TRACK(10,10)-                                                  00030000
+         CONTROLINTERVALSIZE(512)-                                      00040000
+         VOLUME(ZAPRD4)-                                                00050000
+         RECORDSIZE(80,80)-                                             00060000
+         KEYS(5,0)-                                                     00070000
+         FREESPACE(10,10)-                                              00080001
+         INDEXED)-                                                      00090003
+         DATA(NAME(TECN021.TAM.ASSMT02.SHARE.KSDS.DATA))-               00100003
+         INDEX(NAME(TECN021.TAM.ASSMT02.SHARE.KSDS.INDEX))              00110003
+

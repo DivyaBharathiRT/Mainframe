@@ -1,0 +1,102 @@
+       IDENTIFICATION DIVISION.                                         00010001
+       PROGRAM-ID. FILE1.                                               00020001
+       ENVIRONMENT DIVISION.                                            00030001
+       INPUT-OUTPUT SECTION.                                            00040001
+       FILE-CONTROL.                                                    00050001
+           SELECT TI001-PS ASSIGN TO DD1                                00060001
+                           ORGANIZATION IS SEQUENTIAL                   00070001
+                           ACCESS       IS SEQUENTIAL                   00080001
+                           FILE STATUS  WS05-FST-TI001.                 00090001
+       DATA DIVISION.                                                   00100001
+       FILE SECTION.                                                    00110001
+       FD TI001-PS.                                                     00120001
+       01 TI001-PS-REC.                                                 00130001
+           05 TI001-ID   PIC 9(06).                                     00140001
+           05 FILLER     PIC X(01).                                     00150001
+           05 TI001-NAME PIC A(20).                                     00160001
+           05 FILLER     PIC X(01).                                     00170001
+           05 TI001-GEND PIC A(01).                                     00180001
+           05 FILLER     PIC X(01).                                     00190001
+           05 TI001-MAT  PIC A(02).                                     00200001
+           05 FILLER     PIC X(01).                                     00210001
+           05 TI001-ENG  PIC 9(02).                                     00220001
+           05 FILLER     PIC X(01).                                     00230001
+           05 TI001-TAM  PIC 9(02).                                     00240001
+           05 FILLER     PIC X(01).                                     00250001
+           05 TI001-TOT  PIC 9(02).                                     00260001
+           05 FILLER     PIC X(39).                                     00270001
+       WORKING-STORAGE SECTION.                                         00280001
+       01 WS01-VARS.                                                    00290001
+            05 WS05-FST-TI001 PIC 9(02).                                00300001
+            05 WS05-REC-COUNT PIC 9(03) VALUE ZERO.                     00310001
+       PROCEDURE DIVISION.                                              00320001
+       0000-MAIN-PARA.                                                  00330001
+           PERFORM 1000-INIT-PARA                                       00340001
+           PERFORM 3000-PROC-PARA                                       00350001
+              THRU 3000-PROC-PARA-EXIT                                  00360001
+           PERFORM 9000-TERM-PARA                                       00370001
+           .                                                            00380001
+       1000-INIT-PARA.                                                  00390001
+           CONTINUE                                                     00400001
+           .                                                            00410001
+       9000-TERM-PARA.                                                  00420001
+           STOP RUN                                                     00430001
+           .                                                            00440001
+       3000-PROC-PARA.                                                  00450001
+           PERFORM 3100-OPEN-PARA                                       00460001
+               THRU 3100-OPEN-PARA-EXIT                                 00470001
+           PERFORM 3200-READ-PARA                                       00480001
+               THRU 3200-READ-PARA-EXIT                                 00490001
+             UNTIL WS05-FST-TI001 = 10                                  00500001
+           PERFORM 3300-CLOS-PARA                                       00510001
+                   THRU 3300-CLOS-PARA-EXIT                             00520001
+           .                                                            00530001
+       3000-PROC-PARA-EXIT.                                             00540001
+           EXIT                                                         00550001
+           .                                                            00560001
+       3100-OPEN-PARA.                                                  00570001
+           OPEN INPUT TI001-PS                                          00580001
+           EVALUATE TRUE                                                00590001
+           WHEN WS05-FST-TI001 = 00                                     00600001
+               DISPLAY 'TI001 OPENED'                                   00610001
+           WHEN OTHER                                                   00620001
+               DISPLAY 'TI001 OPEN FAILED:' WS05-FST-TI001              00630001
+               PERFORM 9000-TERM-PARA                                   00640001
+           END-EVALUATE                                                 00650001
+           .                                                            00660001
+       3100-OPEN-PARA-EXIT.                                             00670001
+           EXIT                                                         00680001
+           .                                                            00690001
+       3200-READ-PARA.                                                  00730001
+           MOVE SPACES TO TI001-PS-REC                                  00740001
+           READ TI001-PS                                                00750001
+           EVALUATE TRUE                                                00761002
+           WHEN WS05-FST-TI001 = 00                                     00761102
+               PERFORM 3210-GENDER                                      00762002
+           WHEN WS05-FST-TI001 = 10                                     00860001
+               DISPLAY 'ALL RECORDS PROCESSED'                          00870001
+               DISPLAY 'THE NUMBER OF REC PROCESSED:' WS05-REC-COUNT    00880001
+           WHEN OTHER                                                   00890001
+               DISPLAY 'TI001 READ FAILED:' WS05-FST-TI001              00900001
+           END-EVALUATE                                                 00910001
+           .                                                            00920001
+       3210-GENDER.                                                     00921003
+               EVALUATE TRUE                                            00922001
+               WHEN TI001-GEND = 'M'                                    00923001
+                   DISPLAY TI001-PS-REC                                 00924001
+                   DISPLAY 'THE NAME:' TI001-GEND                       00925001
+                   ADD 1 TO WS05-REC-COUNT                              00926001
+               WHEN OTHER                                               00927001
+                   EXIT                                                 00928001
+               END-EVALUATE                                             00929001
+               .                                                        00929103
+       3200-READ-PARA-EXIT.                                             00930001
+           EXIT                                                         00940001
+           .                                                            00950001
+       3300-CLOS-PARA.                                                  00960001
+           CLOSE TI001-PS                                               00970001
+           .                                                            00980001
+       3300-CLOS-PARA-EXIT.                                             00990001
+           EXIT                                                         01000001
+           .                                                            01010001
+

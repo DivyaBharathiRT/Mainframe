@@ -1,0 +1,12 @@
+  DEFINE CLUSTER(-                                                      00060000
+         NAME(TECN021.JCL.ASSMT04.INVNT.KSDS)-                          00070004
+         RECORDSIZE(80,80)-                                             00080000
+         KEYS(20,0)-                                                    00090003
+         TRACK(10,10)-                                                  00100003
+         CONTROLINTERVALSIZE(512)-                                      00110000
+         VOLUME(ZAPRD4)-                                                00120000
+         FREESPACE(10,10)-                                              00130000
+         INDEXED)-                                                      00140003
+         DATA(NAME(TECN021.JCL.ASSMT04.INVNT.KSDS.DATA))-               00141003
+         INDEX(NAME(TECN021.JCL.ASSMT04.INVNT.KSDS.INDEX))              00142003
+

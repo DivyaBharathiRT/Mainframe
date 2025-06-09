@@ -1,0 +1,54 @@
+//TECN021A JOB  NOTIFY=TECN021                                          00010001
+// JCLLIB ORDER=TECN021.JCL.MYPROC                                      00020002
+//STEP010  EXEC PROC=KSDSCRT                                            00030001
+//STEP020  EXEC PGM=IDCAMS                                              00040001
+//SYSPRINT DD   SYSOUT=*                                                00050001
+//SYSIN    DD *                                                         00070001
+  PRINT INDATASET(TECN021.JCL.ASSMT04.INVNT.PS2)-                       00090001
+  CHAR COUNT(1)                                                         00110001
+/*                                                                      00130001
+// IF ( STEP020.RC EQ 0 ) THEN                                          00131001
+//STEP030  EXEC PGM=IDCAMS                                              00133001
+//SYSPRINT DD   SYSOUT=*                                                00135001
+//SYSIN    DD *                                                         00137001
+  REPRO INDATASET(TECN021.JCL.ASSMT04.INVNT.PS2)-                       00138001
+        OUTDATASET(TECN021.JCL.ASSMT04.INVNT.KSDS)                      00139001
+/*                                                                      00139101
+// ENDIF                                                                00139201
+// IF ( STEP020.RC EQ 4 ) THEN                                          00140001
+//STEP040  EXEC PGM=IEBGENER                                            00160001
+//SYSPRINT DD   SYSOUT=*                                                00180001
+//SYSIN    DD   DUMMY                                                   00200001
+//SYSUT1   DD *                                                         00210001
+DATASET IS EMPTY                                                        00220001
+/*                                                                      00230001
+// ENDIF                                                                00240001
+//STEP050  EXEC PGM=IDCAMS                                              00250001
+//SYSPRINT DD   SYSOUT=*                                                00260001
+//SYSIN    DD *                                                         00270001
+  DEFINE AIX(-                                                          00280001
+         NAME(TECN021.JCL.ASSMT04.INVNT.AIX)-                           00290001
+         RELATE(TECN021.JCL.ASSMT04.INVNT.KSDS)-                        00300001
+         TRACK(10,10)-                                                  00310001
+         VOLUME(ZAPRD4)-                                                00320001
+         CONTROLINTERVALSIZE(512)-                                      00330001
+         RECORDSIZE(80,80)-                                             00340001
+         FREESPACE(10,10)-                                              00350001
+         KEYS(6,21)-                                                    00360001
+         UNIQUEKEY)                                                     00370001
+/*                                                                      00380001
+//STEP060  EXEC PGM=IDCAMS                                              00390001
+//SYSPRINT DD   SYSOUT=*                                                00400001
+//SYSIN    DD *                                                         00410001
+  BLDINDEX-                                                             00420001
+  INDATASET(TECN021.JCL.ASSMT04.INVNT.KSDS)-                            00430001
+  OUTDATASET(TECN021.JCL.ASSMT04.INVNT.AIX)                             00440001
+/*                                                                      00450001
+//STEP070  EXEC PGM=IDCAMS                                              00460001
+//SYSPRINT DD   SYSOUT=*                                                00470001
+//SYSIN    DD *                                                         00480001
+  DEFINE PATH(-                                                         00490001
+         NAME(TECN021.JCL.ASSMT04.INVNT.PATH)-                          00500001
+         PATHENTRY(TECN021.JCL.ASSMT04.INVNT.AIX))                      00510003
+/*                                                                      00520001
+

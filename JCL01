@@ -1,0 +1,120 @@
+//TECN021A JOB  NOTIFY=TECN021                                          00010001
+//DSCRT    PROC                                                         00020001
+//STEP001  EXEC PGM=IEFBR14                                             00030001
+//SYSPRINT DD   SYSOUT=*                                                00040001
+//SYSIN    DD   DUMMY                                                   00050001
+//DD1      DD   DSN=&DSNAME..PS2,                                       00060001
+//         DISP=(MOD,DELETE,DELETE),                                    00070001
+//         VOLUME=SER=ZAPRD4,                                           00080001
+//         SPACE=(TRK,(1,1)),                                           00090001
+//         DCB=(LRECL=80,RECFM=FB,BLKSIZE=800,DSORG=PS)                 00100001
+//DD2      DD   DSN=&DSNAME..PS3,                                       00110001
+//         DISP=(MOD,DELETE,DELETE),                                    00120001
+//         VOLUME=SER=ZAPRD4,                                           00130001
+//         SPACE=(TRK,(1,1)),                                           00140001
+//         DCB=(LRECL=80,RECFM=FB,BLKSIZE=800,DSORG=PS)                 00150001
+//DD3      DD   DSN=&DSNAME..PS4,                                       00160001
+//         DISP=(MOD,DELETE,DELETE),                                    00170001
+//         VOLUME=SER=ZAPRD4,                                           00180001
+//         SPACE=(TRK,(1,1)),                                           00190001
+//         DCB=(LRECL=80,RECFM=FB,BLKSIZE=800,DSORG=PS)                 00200001
+//DD4      DD   DSN=&DSNAME..PS5,                                       00210001
+//         DISP=(MOD,DELETE,DELETE),                                    00220001
+//         VOLUME=SER=ZAPRD4,                                           00230001
+//         SPACE=(TRK,(1,1)),                                           00240001
+//         DCB=(LRECL=80,RECFM=FB,BLKSIZE=800,DSORG=PS)                 00250001
+//DD5      DD   DSN=&DSNAME..PS6,                                       00260001
+//         DISP=(MOD,DELETE,DELETE),                                    00270001
+//         VOLUME=SER=ZAPRD4,                                           00280001
+//         SPACE=(TRK,(1,1)),                                           00290001
+//         DCB=(LRECL=80,RECFM=FB,BLKSIZE=800,DSORG=PS)                 00300001
+//STEP002  EXEC PGM=IEFBR14                                             00310001
+//DD1      DD   DSN=&DSNAME..PS2,                                       00330001
+//         DISP=(NEW,CATLG),                                            00340001
+//         VOLUME=SER=ZAPRD4,                                           00350001
+//         SPACE=(TRK,(1,1)),                                           00360001
+//         DCB=(LRECL=80,RECFM=FB,BLKSIZE=800,DSORG=PS)                 00370001
+//DD2      DD   DSN=&DSNAME..PS3,                                       00380001
+//         DISP=(NEW,CATLG),                                            00390001
+//         VOLUME=SER=ZAPRD4,                                           00400001
+//         SPACE=(TRK,(1,1)),                                           00410001
+//         DCB=(LRECL=80,RECFM=FB,BLKSIZE=800,DSORG=PS)                 00420001
+//DD3      DD   DSN=&DSNAME..PS4,                                       00430001
+//         DISP=(NEW,CATLG),                                            00440001
+//         VOLUME=SER=ZAPRD4,                                           00450001
+//         SPACE=(TRK,(1,1)),                                           00460001
+//         DCB=(LRECL=80,RECFM=FB,BLKSIZE=800,DSORG=PS)                 00470001
+//DD4      DD   DSN=&DSNAME..PS5,                                       00480001
+//         DISP=(NEW,CATLG),                                            00490001
+//         VOLUME=SER=ZAPRD4,                                           00500001
+//         SPACE=(TRK,(1,1)),                                           00510001
+//         DCB=(LRECL=80,RECFM=FB,BLKSIZE=800,DSORG=PS)                 00520001
+//DD5      DD   DSN=&DSNAME..PS6,                                       00530001
+//         DISP=(NEW,CATLG),                                            00540001
+//         VOLUME=SER=ZAPRD4,                                           00550001
+//         SPACE=(TRK,(1,1)),                                           00560001
+//         DCB=(LRECL=80,RECFM=FB,BLKSIZE=800,DSORG=PS)                 00570001
+//DSCRT    PEND                                                         00580001
+//STEP003  EXEC PROC=DSCRT,DSNAME=TECN021.JCL.ASSMT04.INVNT             00590001
+//STEP010  EXEC PGM=SORT                                                00600001
+//SYSPRINT DD   SYSOUT=*                                                00610001
+//SYSOUT   DD   SYSOUT=*                                                00620001
+//SORTIN   DD   DSN=TECN021.JCL.ASSMT04.INVNT.PS1,                      00630001
+//         DISP=SHR                                                     00640001
+//SORTOUT  DD   DSN=TECN021.JCL.ASSMT04.INVNT.PS2,                      00650001
+//         DISP=SHR                                                     00660001
+//SYSIN    DD *                                                         00670001
+  SORT FIELDS=(1,20,CH,A,29,2,ZD,D)                                     00680002
+  OMIT COND=(1,9,CH,EQ,C'ITEM_NAME',OR,                                 00690003
+             48,21,CH,EQ,C'                     ')                      00700003
+/*                                                                      00710003
+//STEP020  EXEC PGM=SORT                                                00711005
+//SYSPRINT DD   SYSOUT=*                                                00712005
+//SYSOUT   DD   SYSOUT=*                                                00713005
+//SORTIN   DD   DSN=TECN021.JCL.ASSMT04.INVNT.PS2,                      00714006
+//         DISP=SHR                                                     00715005
+//SORTOUT  DD   DSN=TECN021.JCL.ASSMT04.INVNT.PS3,                      00716006
+//         DISP=SHR                                                     00717005
+//SYSIN    DD *                                                         00718005
+  SORT FIELDS=COPY                                                      00719005
+  INCLUDE COND=(29,2,CH,GT,C'50')                                       00719107
+/*                                                                      00719205
+//STEP030  EXEC PGM=SORT                                                00720004
+//SYSPRINT DD   SYSOUT=*                                                00730004
+//SYSOUT   DD   SYSOUT=*                                                00740004
+//SORTIN   DD   DSN=TECN021.JCL.ASSMT04.INVNT.PS2,                      00750004
+//         DISP=SHR                                                     00760004
+//SORTOUT  DD   DSN=TECN021.JCL.ASSMT04.INVNT.PS4,                      00770004
+//         DISP=SHR                                                     00780004
+//SYSIN    DD *                                                         00790004
+  SORT FIELDS=COPY                                                      00800004
+  INCLUDE COND=(32,15,CH,EQ,C'JAPAN',OR,32,15,CH,EQ,C'MOROCCO',OR,      00810005
+                32,15,CH,EQ,C'PHILIPPINES',OR,32,15,CH,EQ,C'MALAYSIA')  00820005
+  INREC FIELDS=(48,21,X,32,15,X,29,2,ZD,MUL,70,2,ZD,EDIT(TTTT))         00830008
+/*                                                                      00840008
+//STEP040  EXEC PGM=SORT                                                00850008
+//SORTIN   DD   DSN=TECN021.JCL.ASSMT04.INVNT.PS2,                      00860008
+//         DISP=SHR                                                     00870008
+//SORTOUT  DD   DSN=TECN021.JCL.ASSMT04.INVNT.PS5,                      00880008
+//         DISP=SHR                                                     00890008
+//SYSOUT   DD   SYSOUT=*                                                00900008
+//SYSPRINT DD   SYSOUT=*                                                00910008
+//SYSIN    DD *                                                         00920008
+  SORT FIELDS=COPY                                                      00930008
+  OUTFIL REMOVECC,                                                      00940008
+  HEADER1=(12:C'***INVNT DETAILS***'),                                  00950008
+  TRAILER1=(2:C'TOTAL NUMBER OF ITEM_QTYS:',TOTAL=(29,2,ZD,EDIT=(TTTT), 00960008
+                                     LENGTH=4))                         00970008
+/*                                                                      00980008
+//STEP050  EXEC PGM=SORT                                                00990008
+//SORTIN   DD   DSN=TECN021.JCL.ASSMT04.INVNT.PS2,                      01000008
+//         DISP=SHR                                                     01010008
+//SORTOUT  DD   DSN=TECN021.JCL.ASSMT04.INVNT.PS6,                      01020008
+//         DISP=SHR                                                     01030008
+//SYSOUT   DD   SYSOUT=*                                                01040008
+//SYSPRINT DD   SYSOUT=*                                                01050008
+//SYSIN    DD *                                                         01060008
+  SORT FIELDS=COPY                                                      01070008
+  OUTREC FINDREP=(IN=C'HOS',OUT=C'INV',STARTPOS=22,ENDPOS=27)           01080008
+/*                                                                      01090008
+
