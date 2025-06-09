@@ -1,0 +1,343 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID VALIP.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+              SELECT TI001-PS ASSIGN TO DD1
+                     ORGANIZATION IS SEQUENTIAL
+                     ACCESS IS SEQUENTIAL
+                     FILE STATUS IS WS05-FST-TI001.
+              SELECT TO001-PS ASSIGN TO DD2
+                     ORGANIZATION IS SEQUENTIAL
+                     ACCESS IS SEQUENTIAL
+                     FILE STATUS IS WS05-FST-TO001.
+              SELECT TO002-PS ASSIGN TO DD3
+                     ORGANIZATION IS SEQUENTIAL
+                     ACCESS IS SEQUENTIAL
+                     FILE STATUS IS WS05-FST-TO002.
+              SELECT TO003-KSDS ASSIGN TO DD4
+                     ORGANIZATION IS INDEXED
+                     ACCESS IS RANDOM
+                     RECORD KEY IS TO003-POLICY-ID
+                     FILE STATUS IS WS05-FST-TO003.
+       DATA DIVISION.
+       FILE SECTION.
+       FD TI001-PS.
+       01 TI001-PS-REC.
+           05 TI001-POLICY-ID         PIC X(05).
+           05 FILLER                  PIC X(01).
+           05 TI001-POLICY-CODE       PIC X(10).
+           05 FILLER                  PIC X(01).
+           05 TI001-POLICY-NAME       PIC X(25).
+           05 FILLER                  PIC X(01).
+           05 TI001-TYPE-OF-POLICY    PIC X(10).
+           05 FILLER                  PIC X(01).
+           05 TI001-TERM              PIC X(07).
+           05 FILLER                  PIC X(01).
+           05 TI001-POLICY-AMOUNT     PIC 9(10).
+           05 FILLER                  PIC X(01).
+           05 TI001-PLANNED-FOR       PIC X(15).
+           05 FILLER                  PIC X(32).
+       FD TO001-PS.
+       01 TO001-PS-REC.
+           05 TO001-POLICY-ID         PIC X(05).
+           05 FILLER                  PIC X(01).
+           05 TO001-POLICY-CODE       PIC X(10).
+           05 FILLER                  PIC X(01).
+           05 TO001-POLICY-NAME       PIC X(25).
+           05 FILLER                  PIC X(01).
+           05 TO001-TYPE-OF-POLICY    PIC X(10).
+           05 FILLER                  PIC X(01).
+           05 TO001-TERM              PIC X(07).
+           05 FILLER                  PIC X(01).
+           05 TO001-POLICY-AMOUNT     PIC 9(10).
+           05 FILLER                  PIC X(01).
+           05 TO001-PLANNED-FOR       PIC X(15).
+           05 FILLER                  PIC X(01).
+           05 TO001-REASON            PIC X(40).
+           05 FILLER                  PIC X(11).
+       FD TO002-PS.
+       01 TO002-PS-REC.
+           05 TO002-POLICY-ID         PIC X(05).
+           05 FILLER                  PIC X(01).
+           05 TO002-POLICY-CODE       PIC X(10).
+           05 FILLER                  PIC X(01).
+           05 TO002-POLICY-NAME       PIC X(25).
+           05 FILLER                  PIC X(01).
+           05 TO002-TYPE-OF-POLICY    PIC X(10).
+           05 FILLER                  PIC X(01).
+           05 TO002-TERM              PIC X(7).
+           05 FILLER                  PIC X(01).
+           05 TO002-POLICY-AMOUNT     PIC 9(10).
+           05 FILLER                  PIC X(01).
+           05 TO002-PLANNED-FOR       PIC X(15).
+           05 FILLER                  PIC X(32).
+       FD TO003-KSDS.
+       01 TO003-KSDS-REC.
+           05 TO003-POLICY-ID         PIC X(05).
+           05 FILLER                  PIC X(01).
+           05 TO003-POLICY-CODE       PIC X(10).
+           05 FILLER                  PIC X(01).
+           05 TO003-TYPE-OF-POLICY    PIC X(10).
+           05 FILLER                  PIC X(01).
+           05 TO003-PLANNED-FOR       PIC X(15).
+           05 FILLER                  PIC X(77).
+       WORKING-STORAGE SECTION.
+       01 WS01-VARS.
+           05 WS05-FST-TI001          PIC 9(02).
+           05 WS05-FST-TO001          PIC 9(02).
+           05 WS05-FST-TO002          PIC 9(02).
+           05 WS05-FST-TO003          PIC 9(02).
+           05 WS05-REASON             PIC X(40).
+           05 WS05-P-CODE             PIC X(11).
+           05 WS05-LRECL              PIC S9(09) COMP VALUE 80.
+           05 WS05-ERR-MSG.
+              10 WS10-ERR-LEN PIC S9(04) COMP VALUE 800.
+              10 WS10-ERR-TXT PIC X(80) OCCURS 10 TIMES.
+              EXEC SQL
+                  INCLUDE SQLCA
+              END-EXEC.
+              EXEC SQL
+                  INCLUDE DCLPT
+              END-EXEC.
+
+       PROCEDURE DIVISION.
+       0000-MAIN-PARA.
+            PERFORM 1000-INIT-PARA
+            PERFORM 3000-PROC-PARA
+              THRU 3000-PROC-PARA-EXIT
+            PERFORM 9000-TERM-PARA
+            .
+       1000-INIT-PARA.
+            CONTINUE
+            .
+       9000-TERM-PARA.
+            STOP RUN
+            .
+       3000-PROC-PARA.
+            PERFORM 3100-OPEN-PARA
+                 THRU 3100-OPEN-PARA-EXIT
+            PERFORM 3200-READ-PARA
+                 THRU 3200-READ-PARA-EXIT
+            UNTIL WS05-FST-TI001 = 10
+            PERFORM 3300-CLOS-PARA
+                 THRU 3300-CLOS-PARA-EXIT
+            .
+       3000-PROC-PARA-EXIT.
+            EXIT
+            .
+       3100-OPEN-PARA.
+            OPEN INPUT TI001-PS
+            EVALUATE TRUE
+            WHEN WS05-FST-TI001 = 00
+              DISPLAY 'TI001 OPENED'
+            WHEN OTHER
+              DISPLAY 'TI001 OPEN FAILED' WS05-FST-TI001
+              PERFORM 9000-TERM-PARA
+            END-EVALUATE
+            .
+            OPEN OUTPUT TO001-PS
+            EVALUATE TRUE
+            WHEN WS05-FST-TO001 = 00
+              DISPLAY 'TO001 OPENED'
+            WHEN OTHER
+              DISPLAY 'TO001 OPEN FAILED' WS05-FST-TO001
+              PERFORM 9000-TERM-PARA
+            END-EVALUATE
+            .
+            OPEN OUTPUT TO002-PS
+            EVALUATE TRUE
+            WHEN WS05-FST-TO002 = 00
+              DISPLAY 'TO002 OPENED'
+            WHEN OTHER
+              DISPLAY 'TO002 OPEN FAILED' WS05-FST-TO002
+              PERFORM 9000-TERM-PARA
+            END-EVALUATE
+            OPEN OUTPUT TO003-KSDS
+            EVALUATE TRUE
+            WHEN WS05-FST-TO003 = 00
+              DISPLAY 'TO003 OPENED'
+            WHEN OTHER
+              DISPLAY 'TO003 OPEN FAILED' WS05-FST-TO003
+              PERFORM 9000-TERM-PARA
+            END-EVALUATE
+            .
+       3100-OPEN-PARA-EXIT.
+            EXIT
+            .
+       3200-READ-PARA.
+            INITIALIZE DCLINSURANCE-POLICY
+            READ TI001-PS
+            EVALUATE TRUE
+            WHEN WS05-FST-TI001 = 00
+              DISPLAY 'READ SUCCESSFUL'
+              PERFORM 3210-VAL-PARA
+                 THRU 3210-VAL-PARA-EXIT
+            WHEN WS05-FST-TI001 = 10
+              DISPLAY 'END OF THE RECORD'
+            WHEN OTHER
+              DISPLAY 'READ FAIL' WS05-FST-TI001
+            END-EVALUATE
+            .
+       3200-READ-PARA-EXIT.
+            EXIT
+            .
+       3210-VAL-PARA.
+            EVALUATE TRUE
+            WHEN TI001-POLICY-ID         IS GREATER THAN SPACES AND
+               TI001-POLICY-CODE         IS GREATER THAN SPACES AND
+               TI001-POLICY-NAME         IS ALPHABETIC          AND
+               TI001-TYPE-OF-POLICY      IS ALPHABETIC          AND
+              ( TI001-TERM = 'MONTHLY'                           OR
+               TI001-TERM = 'QLY'                                OR
+               TI001-TERM = 'YEARLY' )                           AND
+               TI001-POLICY-AMOUNT       IS NUMERIC              AND
+              ( TI001-PLANNED-FOR = 'CHILDREN'                   OR
+                TI001-PLANNED-FOR = 'WOMEN'                      OR
+                TI001-PLANNED-FOR = 'SENIOR CITIZON'             OR
+                TI001-PLANNED-FOR = 'ALL')
+                PERFORM 3211-INSERT-PARA
+                   THRU 3211-INSERT-PARA-EXIT
+                PERFORM 3212-WTEM-PARA
+                   THRU 3212-WTEM-PARA-EXIT
+                PERFORM 3213-WVSAM-PARA
+                   THRU 3213-WVSAM-PARA-EXIT
+             WHEN OTHER
+               PERFORM 3214-ERR-PARA
+                   THRU 3214-ERR-PARA-EXIT
+             END-EVALUATE
+             .
+       3210-VAL-PARA-EXIT.
+              EXIT
+              .
+       3211-INSERT-PARA.
+              MOVE TI001-POLICY-ID         TO HV-POLICY-ID
+              MOVE TI001-POLICY-CODE (1:5) TO WS05-P-CODE (1:5)
+              MOVE "-"                     TO WS05-P-CODE (6:1)
+              MOVE TI001-POLICY-CODE (6:5) TO WS05-P-CODE (7:5)
+              MOVE WS05-P-CODE             TO HV-POLICY-CODE
+              MOVE TI001-POLICY-NAME       TO HV-POLICY-NAME
+              MOVE TI001-TYPE-OF-POLICY    TO HV-TYPE-OF-POLICY
+              MOVE TI001-TERM              TO HV-TERM
+              MOVE TI001-POLICY-AMOUNT     TO HV-POLICY-AMOUNT
+              MOVE TI001-PLANNED-FOR       TO HV-PLANNED-FOR
+              EXEC SQL
+                INSERT INTO INSURANCE_POLICY VALUES (
+                       :HV-POLICY-ID
+                       ,:HV-POLICY-CODE
+                       ,:HV-POLICY-NAME
+                       ,:HV-TYPE-OF-POLICY
+                       ,:HV-TERM
+                       ,:HV-POLICY-AMOUNT
+                       ,:HV-PLANNED-FOR
+                       )
+              END-EXEC.
+              EVALUATE TRUE
+              WHEN SQLCODE = 00
+                 DISPLAY 'RECORDS INSERTED'
+              WHEN OTHER
+                 DISPLAY 'INSERTED FAILED'
+                 CALL 'DSNTIAR' USING SQLCA WS05-ERR-MSG WS05-LRECL
+                  DISPLAY WS05-ERR-MSG
+              END-EVALUATE
+              .
+       3211-INSERT-PARA-EXIT.
+              EXIT
+              .
+       3212-WTEM-PARA.
+              MOVE SPACES TO TI001-PS-REC  TO001-PS-REC TO002-PS-REC
+                                   TO003-KSDS-REC
+              MOVE TI001-POLICY-ID      TO TO002-POLICY-ID
+              MOVE TI001-POLICY-CODE    TO TO002-POLICY-CODE
+              MOVE TI001-POLICY-NAME    TO TO002-POLICY-NAME
+              MOVE TI001-TYPE-OF-POLICY TO TO002-TYPE-OF-POLICY
+              MOVE TI001-TERM           TO TO002-TERM
+              MOVE TI001-POLICY-AMOUNT  TO TO002-POLICY-AMOUNT
+              MOVE TI001-PLANNED-FOR    TO TO002-PLANNED-FOR
+              WRITE TO002-PS-REC
+              EVALUATE TRUE
+              WHEN WS05-FST-TO002 = 00
+                 DISPLAY 'RECORD TEM WRITTEN'
+              WHEN OTHER
+                 DISPLAY 'WRITTEN TEM FAILED' WS05-FST-TO002
+              END-EVALUATE
+              .
+       3212-WTEM-PARA-EXIT.
+              EXIT
+              .
+       3213-WVSAM-PARA.
+              MOVE TI001-POLICY-ID TO TO003-POLICY-ID
+              MOVE TI001-POLICY-CODE TO TO003-POLICY-CODE
+              MOVE TI001-TYPE-OF-POLICY TO TO003-TYPE-OF-POLICY
+              MOVE TI001-PLANNED-FOR TO TO003-PLANNED-FOR
+              WRITE TO003-KSDS-REC
+              EVALUATE TRUE
+              WHEN WS05-FST-TO003 = 00
+                  DISPLAY 'RECORD VSAM WRITTEN'
+              WHEN OTHER
+                  DISPLAY 'WRITTEN VSAM FAILED' WS05-FST-TO003
+              END-EVALUATE
+              .
+       3213-WVSAM-PARA-EXIT.
+              EXIT
+              .
+       3300-CLOS-PARA.
+              CLOSE TI001-PS TO001-PS TO002-PS TO003-KSDS
+              .
+       3300-CLOS-PARA-EXIT.
+              EXIT
+              .
+       3214-ERR-PARA.
+              EVALUATE TRUE
+              WHEN TI001-POLICY-ID IS NOT GREATER THAN SPACES
+                MOVE 'ID IS NOT GREATER THAN SPACES' TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-POLICY-CODE IS NOT GREATER THAN SPACES
+                MOVE 'CODE IS NOT GREATER THAN SPACES' TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-POLICY-NAME IS NOT ALPHABETIC
+                MOVE 'NAME IS IN ALPHANUMERIC' TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-TYPE-OF-POLICY IS NOT ALPHABETIC
+                MOVE 'INVALID POLICY TYPE' TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-TERM IS NOT EQUAL   TO 'MONTHLY' AND
+                   TI001-TERM IS NOT EQUAL   TO 'QLY'     AND
+                   TI001-TERM IS NOT EQUAL   TO 'YEARLY'
+                MOVE 'INVALID TERM SELECTED' TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-POLICY-AMOUNT IS NOT NUMERIC
+               MOVE 'AMOUNT IS INVALID'      TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-PLANNED-FOR IS NOT EQUAL TO 'ALL'      AND
+                   TI001-PLANNED-FOR IS NOT EQUAL TO 'CHILDREN' AND
+                   TI001-PLANNED-FOR IS NOT EQUAL TO 'WOMEN'    AND
+                   TI001-PLANNED-FOR IS NOT EQUAL TO 'SENIOR CITIZON'
+               MOVE 'IVALID PLAN SELECTED'        TO WS05-REASON
+              END-EVALUATE
+              MOVE TI001-POLICY-ID TO TO001-POLICY-ID
+              MOVE TI001-POLICY-CODE TO TO001-POLICY-CODE
+              MOVE TI001-POLICY-NAME TO TO001-POLICY-NAME
+              MOVE TI001-TYPE-OF-POLICY TO TO001-TYPE-OF-POLICY
+              MOVE TI001-TERM TO TO001-TERM
+              MOVE TI001-POLICY-AMOUNT TO TO001-POLICY-AMOUNT
+              MOVE TI001-PLANNED-FOR TO TO001-PLANNED-FOR
+              MOVE WS05-REASON TO TO001-REASON
+              WRITE TO001-PS-REC
+              EVALUATE TRUE
+              WHEN WS05-FST-TO001 = 00
+                  DISPLAY 'RECORD ERR WRITTEN'
+              WHEN OTHER
+                DISPLAY 'ERROR FILE NOT DONE' WS05-FST-TO001
+              END-EVALUATE
+              .
+       3214-ERR-PARA-EXIT.
+              EXIT
+              .
+

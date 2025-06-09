@@ -1,0 +1,278 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID AGENT.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+              SELECT TI001-PS ASSIGN TO DD1
+                     ORGANIZATION IS SEQUENTIAL
+                     ACCESS IS SEQUENTIAL
+                     FILE STATUS IS WS05-FST-TI001.
+              SELECT TO001-PS ASSIGN TO DD2
+                     ORGANIZATION IS SEQUENTIAL
+                     ACCESS IS SEQUENTIAL
+                     FILE STATUS IS WS05-FST-TO001.
+       DATA DIVISION.
+       FILE SECTION.
+       FD TI001-PS.
+       01 TI001-PS-REC.
+           05 TI001-AGENT-CODE            PIC X(5).
+           05 FILLER                      PIC X(01).
+           05 TI001-AGENT-NAME            PIC X(10).
+           05 FILLER                      PIC X(01).
+           05 TI001-STREET                PIC X(20).
+           05 FILLER                      PIC X(01).
+           05 TI001-CITY                  PIC X(20).
+           05 FILLER                      PIC X(01).
+           05 TI001-STATE                 PIC X(20).
+           05 FILLER                      PIC X(01).
+           05 TI001-PIN                   PIC 9(06).
+           05 FILLER                      PIC X(01).
+           05 TI001-PHONE-NO              PIC 9(10).
+           05 FILLER                      PIC X(01).
+           05 TI001-REGISTRATION-NUMBER   PIC X(17).
+           05 FILLER                      PIC X(01).
+           05 TI001-COMMISSION            PIC 9(03).
+           05 FILLER                      PIC X(01).
+           05 TI001-HOLDERS-COUNT         PIC 9(10).
+           05 FILLER                      PIC X(10).
+       FD TO001-PS.
+       01 TO001-PS-REC.
+           05 TO001-AGENT-CODE            PIC X(5).
+           05 FILLER                      PIC X(01).
+           05 TO001-AGENT-NAME            PIC X(10).
+           05 FILLER                      PIC X(01).
+           05 TO001-STREET                PIC X(20).
+           05 FILLER                      PIC X(01).
+           05 TO001-CITY                  PIC X(20).
+           05 FILLER                      PIC X(01).
+           05 TO001-STATE                 PIC X(20).
+           05 FILLER                      PIC X(01).
+           05 TO001-PIN                   PIC 9(06).
+           05 FILLER                      PIC X(01).
+           05 TO001-PHONE-NO              PIC 9(10).
+           05 FILLER                      PIC X(01).
+           05 TO001-REGISTRATION-NUMBER   PIC X(17).
+           05 FILLER                      PIC X(01).
+           05 TO001-COMMISSION            PIC 9(03).
+           05 FILLER                      PIC X(01).
+           05 TO001-HOLDERS-COUNT         PIC 9(10).
+           05 FILLER                      PIC X(01).
+           05 TO001-REASON                PIC X(50).
+           05 FILLER                      PIC X(09).
+       WORKING-STORAGE SECTION.
+       01 WS01-VARS.
+           05 WS05-FST-TI001          PIC 9(02).
+           05 WS05-FST-TO001          PIC 9(02).
+           05 WS05-REASON             PIC X(50).
+           05 WS05-REG-NUM            PIC X(17).
+           05 WS05-LRECL              PIC S9(09) COMP VALUE 80.
+           05 WS05-ERR-MSG.
+              10 WS10-ERR-LEN PIC S9(04) COMP VALUE 800.
+              10 WS10-ERR-TXT PIC X(80) OCCURS 10 TIMES.
+              EXEC SQL
+                  INCLUDE SQLCA
+              END-EXEC.
+              EXEC SQL
+                  INCLUDE DCLAGT
+              END-EXEC.
+       PROCEDURE DIVISION.
+       0000-MAIN-PARA.
+            PERFORM 1000-INIT-PARA
+            PERFORM 3000-PROC-PARA
+              THRU 3000-PROC-PARA-EXIT
+            PERFORM 9000-TERM-PARA
+            .
+       1000-INIT-PARA.
+           CONTINUE
+            .
+       9000-TERM-PARA.
+            STOP RUN
+            .
+       3000-PROC-PARA.
+            PERFORM 3100-OPEN-PARA
+                 THRU 3100-OPEN-PARA-EXIT
+            PERFORM 3200-READ-PARA
+                 THRU 3200-READ-PARA-EXIT
+            UNTIL WS05-FST-TI001 = 10
+            PERFORM 3300-CLOS-PARA
+                 THRU 3300-CLOS-PARA-EXIT
+            .
+       3000-PROC-PARA-EXIT.
+            EXIT
+            .
+       3100-OPEN-PARA.
+            OPEN INPUT TI001-PS
+            EVALUATE TRUE
+            WHEN WS05-FST-TI001 = 00
+              DISPLAY 'TI001 OPENED'
+            WHEN OTHER
+              DISPLAY 'TI001 OPEN FAILED' WS05-FST-TI001
+              PERFORM 9000-TERM-PARA
+            END-EVALUATE
+            .
+            OPEN OUTPUT TO001-PS
+            EVALUATE TRUE
+            WHEN WS05-FST-TO001 = 00
+              DISPLAY 'TO001 OPENED'
+            WHEN OTHER
+              DISPLAY 'TO001 OPEN FAILED' WS05-FST-TO001
+              PERFORM 9000-TERM-PARA
+            END-EVALUATE
+            .
+       3100-OPEN-PARA-EXIT.
+            EXIT
+            .
+       3200-READ-PARA.
+            MOVE SPACES TO TI001-PS-REC  TO001-PS-REC
+            INITIALIZE DCLAGENT-DETAILS
+            READ TI001-PS
+            EVALUATE TRUE
+            WHEN WS05-FST-TI001 = 00
+              DISPLAY 'READ SUCCESSFUL'
+              PERFORM 3210-VAL-PARA
+                 THRU 3210-VAL-PARA-EXIT
+            WHEN WS05-FST-TI001 = 10
+              DISPLAY 'END OF THE RECORD'
+            WHEN OTHER
+              DISPLAY 'READ FAIL' WS05-FST-TI001
+            END-EVALUATE
+            .
+       3200-READ-PARA-EXIT.
+            EXIT
+            .
+       3210-VAL-PARA.
+            EVALUATE TRUE
+            WHEN TI001-AGENT-CODE          IS GREATER THAN SPACES AND
+                 TI001-AGENT-NAME          IS GREATER THAN SPACES AND
+                 TI001-STREET              IS GREATER THAN SPACES AND
+                 TI001-CITY                IS ALPHABETIC          AND
+                 TI001-STATE               IS ALPHABETIC          AND
+                 TI001-PIN                 IS NUMERIC             AND
+                 TI001-PHONE-NO            IS NUMERIC             AND
+                 TI001-REGISTRATION-NUMBER IS GREATER THAN SPACES AND
+                 TI001-COMMISSION          IS NUMERIC             AND
+                 TI001-HOLDERS-COUNT       IS NUMERIC
+                 PERFORM 3211-INSERT-PARA
+                   THRU 3211-INSERT-PARA-EXIT
+            WHEN OTHER
+                 PERFORM 3212-ERR-PARA
+                   THRU 3212-ERR-PARA-EXIT
+            END-EVALUATE
+            .
+       3210-VAL-PARA-EXIT.
+              EXIT
+              .
+       3211-INSERT-PARA.
+              MOVE TI001-AGENT-CODE TO HV-AGENT-CODE
+              MOVE TI001-AGENT-NAME TO HV-AGENT-NAME
+              MOVE TI001-STREET     TO HV-STREET
+              MOVE TI001-CITY       TO HV-CITY
+              MOVE TI001-STATE      TO HV-STATE
+              MOVE TI001-PIN        TO HV-PIN
+              MOVE TI001-PHONE-NO   TO HV-PHONE-NO
+              MOVE TI001-REGISTRATION-NUMBER(1:2) TO WS05-REG-NUM(1:2)
+              MOVE "-"                            TO WS05-REG-NUM(3:1)
+              MOVE TI001-REGISTRATION-NUMBER(3:3) TO WS05-REG-NUM(4:3)
+              MOVE "-"                            TO WS05-REG-NUM(7:1)
+              MOVE TI001-REGISTRATION-NUMBER(6:4) TO WS05-REG-NUM(8:4)
+              MOVE "-"                            TO WS05-REG-NUM(12:1)
+              MOVE TI001-REGISTRATION-NUMBER(10:5)TO WS05-REG-NUM(13:5)
+              MOVE WS05-REG-NUM     TO HV-REGISTRATION-NUMBER
+              MOVE TI001-COMMISSION TO HV-COMMISSION
+              MOVE TI001-HOLDERS-COUNT TO HV-HOLDERS-COUNT
+              EXEC SQL
+                 INSERT INTO AGENT_DETAILS VALUES (
+                      :HV-AGENT-CODE
+                      ,:HV-AGENT-NAME
+                      ,:HV-STREET
+                      ,:HV-CITY
+                      ,:HV-STATE
+                      ,:HV-PIN
+                      ,:HV-PHONE-NO
+                      ,:HV-REGISTRATION-NUMBER
+                      ,:HV-COMMISSION
+                      ,:HV-HOLDERS-COUNT
+                      )
+              END-EXEC.
+              EVALUATE TRUE
+              WHEN SQLCODE = 00
+                 DISPLAY 'RECORDS INSERTED'
+              WHEN OTHER
+                 DISPLAY 'INSERTED FAILED'
+                 CALL 'DSNTIAR' USING SQLCA WS05-ERR-MSG WS05-LRECL
+                  DISPLAY WS05-ERR-MSG
+              END-EVALUATE
+              .
+       3211-INSERT-PARA-EXIT.
+              EXIT
+              .
+       3212-ERR-PARA.
+              EVALUATE TRUE
+              WHEN TI001-AGENT-CODE IS NOT GREATER THAN SPACES
+                 MOVE 'CODE NOT GIVEN' TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-AGENT-NAME IS NOT GREATER THAN SPACES
+                 MOVE 'NAME NOT ENTERED' TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-STREET IS NOT GREATER THAN SPACES
+                 MOVE 'WHERE IS THE STREET NAME' TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-CITY IS NOT ALPHABETIC
+                 MOVE 'INVALID FORMAT' TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-STATE IS NOT ALPHABETIC
+                MOVE 'GIVE VALID INPUT' TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-PIN IS NOT NUMERIC
+                MOVE 'GIVE CORRECT PIN' TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-PHONE-NO IS NOT NUMERIC
+                MOVE 'INVALID PHNUM' TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-REGISTRATION-NUMBER IS NOT GREATER THAN SPACES
+                MOVE 'NOT A REGISTERED ONE' TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-COMMISSION IS NOT NUMERIC
+                MOVE 'NOT A PERFECT COMMISSION' TO WS05-REASON
+              END-EVALUATE
+              EVALUATE TRUE
+              WHEN TI001-HOLDERS-COUNT IS NOT NUMERIC
+                MOVE 'INCORRECT COUNT' TO WS05-REASON
+              END-EVALUATE
+              MOVE TI001-AGENT-CODE         TO TO001-AGENT-CODE
+              MOVE TI001-AGENT-NAME         TO TO001-AGENT-NAME
+              MOVE TI001-STREET             TO TO001-STREET
+              MOVE TI001-CITY               TO TO001-CITY
+              MOVE TI001-STATE              TO TO001-STATE
+              MOVE TI001-PIN                TO TO001-PIN
+              MOVE TI001-PHONE-NO           TO TO001-PHONE-NO
+             MOVE TI001-REGISTRATION-NUMBER TO TO001-REGISTRATION-NUMBER
+              MOVE TI001-COMMISSION         TO TO001-COMMISSION
+              MOVE TI001-HOLDERS-COUNT      TO TO001-HOLDERS-COUNT
+              MOVE WS05-REASON              TO TO001-REASON
+              WRITE TO001-PS-REC
+              EVALUATE TRUE
+              WHEN WS05-FST-TO001 = 00
+                  DISPLAY 'RECORD ERR WRITTEN'
+              WHEN OTHER
+                DISPLAY 'ERROR FILE NOT DONE' WS05-FST-TO001
+              END-EVALUATE
+              .
+       3212-ERR-PARA-EXIT.
+              EXIT
+              .
+       3300-CLOS-PARA.
+              CLOSE TI001-PS TO001-PS
+              .
+       3300-CLOS-PARA-EXIT.
+              EXIT
+              .
+

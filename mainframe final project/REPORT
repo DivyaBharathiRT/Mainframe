@@ -1,0 +1,275 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. REPPGM.
+       AUTHOR. TECN021A.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+            SELECT TI001-PS   ASSIGN TO DD1
+                              ACCESS IS SEQUENTIAL
+                              ORGANIZATION IS SEQUENTIAL
+                              FILE STATUS IS WS05-FST-TI001.
+            SELECT TO001-REP  ASSIGN TO DD2
+                              ACCESS IS SEQUENTIAL
+                              ORGANIZATION IS SEQUENTIAL
+                              FILE STATUS IS WS05-FST-TO001.
+       DATA DIVISION.
+       FILE SECTION.
+       FD TI001-PS.
+       01 TI001-PS-REC.
+           05 TI001-POLICY-ID         PIC X(05).
+           05 FILLER                  PIC X(01).
+           05 TI001-POLICY-CODE       PIC X(10).
+           05 FILLER                  PIC X(01).
+           05 TI001-POLICY-NAME       PIC X(25).
+           05 FILLER                  PIC X(01).
+           05 TI001-TYPE-OF-POLICY    PIC X(10).
+           05 FILLER                  PIC X(01).
+           05 TI001-TERM              PIC X(07).
+           05 FILLER                  PIC X(01).
+           05 TI001-POLICY-AMT        PIC 9(10).
+           05 FILLER                  PIC X(01).
+           05 TI001-PLANNED-FOR       PIC X(15).
+           05 FILLER                  PIC X(32).
+       FD TO001-REP.
+       01 TO001-REP-REC            PIC X(80).
+       WORKING-STORAGE SECTION.
+       01 WS01-HEADER-1.
+           05 FILLER              PIC X(22).
+           05 WS05-TITLE          PIC X(32).
+           05 FILLER              PIC X(26).
+       01 WS01-HEADER-2A.
+           05 DATEE               PIC X(05) VALUE 'DATE:'.
+           05 WS05-DATE           PIC X(10).
+           05 FILLER              PIC X(41).
+           05 PAGE-NO             PIC X(05) VALUE 'PAGE:'.
+           05 WS05-PAGE-NO        PIC 9(02).
+           05 FILLER              PIC X(17).
+       01 WS01-HEADER-2B.
+           05 FILLER              PIC X(56).
+           05 PAGE-NO-1           PIC X(05) VALUE 'PAGE:'.
+           05 WS05-PAGE-NO-1      PIC 9(02).
+           05 FILLER              PIC X(17).
+       01 WS01-HEADER-3A.
+           05 TIMEE               PIC X(05) VALUE 'TIME:'.
+           05 WS05-TIME           PIC X(08).
+           05 FILLER              PIC X(43).
+           05 REPORT-ID           PIC X(14) VALUE 'REPORT ID:1016'.
+           05 FILLER              PIC X(10).
+       01 WS01-HEADER-3B.
+           05 FILLER              PIC X(56).
+           05 REPORT-ID1          PIC X(14) VALUE 'REPORT ID:1016'.
+           05 FILLER              PIC X(10).
+       01 WS01-HEADER-4.
+           05 SYMBOL-1            PIC X(72) VALUE ALL '-'.
+           05 FILLER              PIC X(08).
+       01 WS01-HEADER-5.
+           05 TITLE-1             PIC X(09) VALUE 'POLICY ID'.
+           05 FILLER              PIC X(11).
+           05 TITLE-2             PIC X(11) VALUE 'POLICY NAME'.
+           05 FILLER              PIC X(11).
+           05 TITLE-3             PIC X(10) VALUE 'POLICY AMT'.
+           05 FILLER              PIC X(11).
+           05 TITLE-4             PIC X(04) VALUE 'TERM'.
+           05 FILLER              PIC X(13).
+       01 WS01-HEADER-6.
+           05 SYMBOL-2            PIC X(10) VALUE ALL '-'.
+           05 FILLER              PIC X(09).
+           05 SYMBOL-3            PIC X(14) VALUE ALL '-'.
+           05 FILLER              PIC X(08).
+           05 SYMBOL-4            PIC X(12) VALUE ALL '-'.
+           05 FILLER              PIC X(09).
+           05 SYMBOL-5            PIC X(07) VALUE ALL '-'.
+           05 FILLER              PIC X(11).
+       01 WS01-RECORDS.
+           05 WS05-POLICY-ID     PIC X(05).
+           05 FILLER             PIC X(07).
+           05 WS05-POLICY-NAME   PIC X(25).
+           05 FILLER             PIC X(05).
+           05 WS05-POLICY-AMT    PIC X(10).
+           05 FILLER             PIC X(10).
+           05 WS05-TERM          PIC X(07).
+           05 FILLER             PIC X(11).
+       01 WS01-FOOTER-1.
+           05 SYMBOL-6           PIC X(31) VALUE ALL'-'.
+           05 END-OF-PAGES       PIC X(11) VALUE 'END 0F PAGE'.
+           05 SYMBOL-7           PIC X(30) VALUE ALL '-'.
+           05 FILLER             PIC X(08).
+       01 WS01-FOOTER-2.
+           05 SYMBOL-8           PIC X(30) VALUE ALL '*'.
+           05 END-OF-REPORT      PIC X(13) VALUE 'END OF REPORT'.
+           05 SYMBOL-9           PIC X(29) VALUE '*'.
+           05 FILLER             PIC X(08).
+       01 WS01-VARS.
+           05 WS05-FST-TI001     PIC 9(02).
+           05 WS05-FST-TO001     PIC 9(02).
+           05 WS05-REC-COUNT     PIC 9(02).
+           05 WS05-LINE-NO       PIC 9(02) VALUE 0.
+           05 WS05-DATE-TIME.
+               10 WS10-YEAR      PIC 9(04).
+               10 WS10-MONTH     PIC 9(02).
+               10 WS10-DATE      PIC 9(02).
+               10 WS10-HOUR      PIC 9(02).
+               10 WS10-MINS      PIC 9(02).
+               10 WS10-SECS      PIC 9(02).
+       PROCEDURE DIVISION.
+       0000-MAIN-PARA.
+             PERFORM 1000-INIT-PARA
+             PERFORM 3000-PROC-PARA
+                   THRU 3000-PROC-PARA-EXIT
+             PERFORM 9000-TERM-PARA
+             .
+       1000-INIT-PARA.
+              CONTINUE
+              .
+       3000-PROC-PARA.
+              PERFORM 3100-OPEN-PARA
+                    THRU 3100-OPEN-PARA-EXIT
+              PERFORM 3200-HEADER-PARA
+                     THRU 3200-HEADER-PARA-EXIT
+              PERFORM 3300-READ-PARA
+                     THRU 3300-READ-PARA-EXIT
+              UNTIL WS05-FST-TI001 = 10
+              PERFORM 3400-FOOTER-PARA
+                     THRU 3400-FOOTER-PARA-EXIT
+              PERFORM 3500-CLOSE-PARA
+                     THRU 3500-CLOSE-PARA-EXIT
+              .
+       3000-PROC-PARA-EXIT.
+              EXIT
+              .
+       3100-OPEN-PARA.
+                OPEN INPUT TI001-PS
+                EVALUATE TRUE
+                WHEN WS05-FST-TI001 = 00
+                     DISPLAY 'TI001-PS OPENED'
+                WHEN OTHER
+                     DISPLAY 'TI001-PS OPEN FAILED'
+                     DISPLAY 'FILE STATUS: ' WS05-FST-TI001
+                     PERFORM 9000-TERM-PARA
+                END-EVALUATE
+                OPEN OUTPUT TO001-REP
+                EVALUATE TRUE
+                WHEN WS05-FST-TO001 = 00
+                     DISPLAY 'TO001-REP OPENED'
+                WHEN OTHER
+                     DISPLAY 'TO001-REP OPEN FAILED'
+                     DISPLAY 'FILE STATUS: ' WS05-FST-TO001
+                     PERFORM 9000-TERM-PARA
+                END-EVALUATE
+                .
+       3100-OPEN-PARA-EXIT.
+                EXIT
+                .
+       3200-HEADER-PARA.
+               MOVE 'PROPERTY INSURANCE DETAIL REPORT'TO WS05-TITLE
+               MOVE FUNCTION CURRENT-DATE             TO WS05-DATE-TIME
+               MOVE WS10-YEAR                         TO WS05-DATE(1:4)
+               MOVE '/'                               TO WS05-DATE(5:1)
+               MOVE WS10-MONTH                        TO WS05-DATE(6:2)
+               MOVE '/'                               TO WS05-DATE(8:1)
+               MOVE WS10-DATE                         TO WS05-DATE(9:2)
+               MOVE WS10-HOUR                         TO WS05-TIME(1:2)
+               MOVE ':'                               TO WS05-TIME(3:1)
+               MOVE WS10-MINS                         TO WS05-TIME(4:2)
+               MOVE ':'                               TO WS05-TIME(6:1)
+               MOVE WS10-SECS                         TO WS05-TIME(7:2)
+               ADD  1                                 TO WS05-PAGE-NO
+               WRITE TO001-REP-REC                FROM WS01-HEADER-1
+               WRITE TO001-REP-REC                FROM WS01-HEADER-2A
+               WRITE TO001-REP-REC                FROM WS01-HEADER-3A
+               WRITE TO001-REP-REC                FROM WS01-HEADER-4
+               WRITE TO001-REP-REC                FROM WS01-HEADER-5
+               WRITE TO001-REP-REC                FROM WS01-HEADER-6
+               EVALUATE TRUE
+               WHEN WS05-FST-TO001 = 00
+                     DISPLAY 'HEADER WAS WRITTEN'
+               WHEN OTHER
+                     DISPLAY 'HEADER WAS NOT WRTITTEN'
+                     DISPLAY 'FILE STATUS : ' WS05-FST-TO001
+                     PERFORM 9000-TERM-PARA
+               END-EVALUATE
+               .
+       3200-HEADER-PARA-EXIT.
+                EXIT
+                .
+       3300-READ-PARA.
+                MOVE SPACES TO TI001-PS-REC
+                ADD 1 TO WS05-REC-COUNT
+                READ TI001-PS
+                EVALUATE TRUE
+                WHEN WS05-FST-TI001 = 0
+                    DISPLAY 'RECORD ' WS05-REC-COUNT 'WAS READ'
+                    PERFORM 3310-WRITE-PARA
+                         THRU 3310-WRITE-PARA-EXIT
+                WHEN WS05-FST-TI001 = 10
+                    DISPLAY 'ALL RECORDS WERE READ'
+                WHEN OTHER
+                    DISPLAY 'RECORD ' WS05-REC-COUNT 'READ FAILED'
+                    DISPLAY 'FILE STATUS : ' WS05-FST-TI001
+                END-EVALUATE
+                .
+       3300-READ-PARA-EXIT.
+                EXIT
+                .
+       3310-WRITE-PARA.
+                 ADD 1                       TO WS05-LINE-NO
+               MOVE TI001-POLICY-ID          TO WS05-POLICY-ID
+               MOVE TI001-POLICY-NAME        TO WS05-POLICY-NAME
+               MOVE TI001-POLICY-AMT         TO WS05-POLICY-AMT
+               MOVE TI001-TERM               TO WS05-TERM
+               EVALUATE TRUE
+               WHEN WS05-LINE-NO >= 1 AND WS05-LINE-NO < 9
+                     WRITE TO001-REP-REC FROM WS01-RECORDS
+                     EVALUATE TRUE
+                     WHEN WS05-FST-TO001 = 00
+                        DISPLAY 'RECORD' WS05-REC-COUNT ' WRITTEN'
+                     WHEN OTHER
+                        DISPLAY 'RECORD' WS05-REC-COUNT 'NOT WRITTEN'
+                        DISPLAY 'FILE STATUS : ' WS05-FST-TO001
+                     END-EVALUATE
+               WHEN WS05-LINE-NO = 9
+                     WRITE TO001-REP-REC FROM WS01-RECORDS
+                     WRITE TO001-REP-REC FROM WS01-FOOTER-1
+                        ADD 1              TO WS05-PAGE-NO
+                       MOVE WS05-PAGE-NO   TO WS05-PAGE-NO-1
+                     WRITE TO001-REP-REC FROM WS01-HEADER-2B
+                     WRITE TO001-REP-REC FROM WS01-HEADER-3B
+                     WRITE TO001-REP-REC FROM WS01-HEADER-4
+                     WRITE TO001-REP-REC FROM WS01-HEADER-5
+                     WRITE TO001-REP-REC FROM WS01-HEADER-6
+                     MOVE 1                TO WS05-LINE-NO
+                     EVALUATE TRUE
+                     WHEN WS05-FST-TO001 = 00
+                           DISPLAY 'RECORD' WS05-REC-COUNT 'WRITTEN'
+                     WHEN OTHER
+                           DISPLAY 'FILE STATUS ' WS05-FST-TO001
+                     END-EVALUATE
+                     DISPLAY 'END OF PAGE : ' WS05-PAGE-NO
+               END-EVALUATE
+               .
+       3310-WRITE-PARA-EXIT.
+               EXIT
+               .
+       3400-FOOTER-PARA.
+               WRITE TO001-REP-REC FROM WS01-FOOTER-2
+               EVALUATE TRUE
+               WHEN WS05-FST-TO001 = 00
+                     DISPLAY 'FOOTER WAS WRITTEN'
+               WHEN OTHER
+                     DISPLAY 'FOOTER WAS NOT WRITTEN'
+                     DISPLAY 'FILE STATUS : ' WS05-FST-TO001
+               END-EVALUATE
+               .
+       3400-FOOTER-PARA-EXIT.
+               EXIT
+               .
+       3500-CLOSE-PARA.
+               CLOSE TI001-PS TO001-REP
+               .
+       3500-CLOSE-PARA-EXIT.
+                EXIT
+                .
+       9000-TERM-PARA.
+                STOP RUN
+                .
+
