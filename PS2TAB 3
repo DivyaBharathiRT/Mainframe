@@ -1,0 +1,204 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PS2TAB.
+       ENVIRONMENT DIVISION.
+      *PERFORMING A OPERATIONS IN A TABLE BASED ON PS FILE
+      *   DATA
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT TI001-PS ASSIGN TO DD2
+                           ORGANIZATION IS SEQUENTIAL
+                           ACCESS  IS SEQUENTIAL
+                           FILE STATUS IS WS05-FST-TI001.
+       DATA DIVISION.
+       FILE SECTION.
+       FD TI001-PS.
+       01 TI001-PS-REC.
+           05 TI001-ID       PIC X(05).
+           05 FILLER         PIC X(01).
+           05 TI001-OPR      PIC X(01).
+           05 F              PIC X(73).
+       WORKING-STORAGE SECTION.
+       01 WS01-VARS.
+           05 WS05-FST-TI001 PIC 9(02).
+           05 WS05-SQLCODE   PIC S9(03) SIGN LEADING SEPARATE.
+           05 WS05-N-IND-SAL PIC S9(04) COMP.
+           05 WS05-SQL-LRECL PIC S9(09) COMP VALUE 80.
+           05 WS05-SQL-ERR.
+               10 WS10-ERR-LEN PIC S9(04) COMP VALUE 800.
+               10 WS10-ERR-TXT PIC X(80)  OCCURS 10 TIMES.
+           EXEC SQL
+               INCLUDE SQLCA
+           END-EXEC
+           EXEC SQL
+               INCLUDE TABE
+           END-EXEC
+       PROCEDURE DIVISION.
+       0000-MAIN-PARA.
+           PERFORM 1000-INIT-PARA
+           PERFORM 3000-PROC-PARA
+              THRU 3000-PROC-PARA-EXIT
+           PERFORM 9000-TERM-PARA
+           .
+       1000-INIT-PARA.
+           CONTINUE
+           .
+       9000-TERM-PARA.
+           STOP RUN
+           .
+       3000-PROC-PARA.
+           PERFORM 3100-OPEN-PARA
+             THRU 3100-OPEN-PARA-EXIT
+           PERFORM 3200-READ-PARA
+             THRU 3200-READ-PARA-EXIT
+             UNTIL WS05-FST-TI001 = 10
+           PERFORM 3300-CLOS-PARA
+             THRU 3300-CLOS-PARA-EXIT
+           .
+       3000-PROC-PARA-EXIT.
+             EXIT
+           .
+       3100-OPEN-PARA.
+              OPEN INPUT TI001-PS
+              EVALUATE TRUE
+              WHEN WS05-FST-TI001 = 00
+                   DISPLAY ' TI001 OPENED'
+              WHEN OTHER
+                    DISPLAY 'TI001 OPEN FAILED  ;' WS05-FST-TI001
+                    PERFORM 9000-TERM-PARA
+              END-EVALUATE
+           .
+       3100-OPEN-PARA-EXIT.
+              EXIT
+           .
+       3200-READ-PARA.
+              INITIALIZE DCLEMPLOY2
+              MOVE SPACES TO TI001-PS-REC
+              READ TI001-PS
+              EVALUATE TRUE
+              WHEN WS05-FST-TI001 = 00
+                   PERFORM 3210-CHECK-PARA
+                    THRU 3210-CHECK-PARA-EXIT
+              WHEN WS05-FST-TI001 = 10
+                DISPLAY ' ALL RECORDS PROCESSED'
+              WHEN OTHER
+                  DISPLAY 'TI001 READ FAILED  ;' WS05-FST-TI001
+              END-EVALUATE
+           .
+       3200-READ-PARA-EXIT.
+                  EXIT
+           .
+       3210-CHECK-PARA.
+              EVALUATE TRUE
+              WHEN TI001-OPR = 'S'
+                  PERFORM 3211-SELECT-PARA
+                    THRU  3211-SELECT-PARA-EXIT
+              WHEN TI001-OPR = 'D'
+                  PERFORM 3212-DELETE-PARA
+                    THRU 3212-DELETE-PARA-EXIT
+              WHEN TI001-OPR = 'U'
+                  PERFORM 3213-UPDATE-PARA
+                    THRU 3213-UPDATE-PARA
+              WHEN OTHER
+                  DISPLAY 'INVALID OPERATION'
+              END-EVALUATE
+           .
+       3210-CHECK-PARA-EXIT.
+              EXIT
+           .
+       3211-SELECT-PARA.
+           MOVE TI001-ID TO HV-E-ID
+           EXEC SQL
+              SELECT
+                 E_ID
+                ,EMP_NAME
+                ,DATE_OF_JOIN
+                ,SALARY
+                ,DEPT_ID
+              INTO
+                :HV-E-ID
+               ,:HV-EMP-NAME
+               ,:HV-DATE-OF-JOIN
+               ,:HV-SALARY :WS05-N-IND-SAL
+               ,:HV-DEPT-ID
+               ,:HV-GENDER
+              FROM EMPLOY2
+              WHERE E_ID = :HV-E-ID
+           END-EXEC
+           EVALUATE TRUE
+           WHEN SQLCODE = 0
+             DISPLAY ' SELECT SUCCESS '
+             EVALUATE TRUE
+             WHEN WS05-N-IND-SAL = +000
+                  DISPLAY 'ID '  HV-E-ID
+                  DISPLAY 'NAME '  HV-EMP-NAME-TEXT
+                  DISPLAY 'DOJ '  HV-DATE-OF-JOIN
+                  DISPLAY 'SALARY '  HV-SALARY
+                  DISPLAY 'DEPT-ID '  HV-DEPT-ID-TEXT
+                  DISPLAY 'GENDER '  HV-GENDER
+             WHEN OTHER
+                  DISPLAY 'SALARY IS NULL VALUE '
+                  DISPLAY 'ID '  HV-E-ID
+                  DISPLAY 'NAME '  HV-EMP-NAME-TEXT
+                  DISPLAY 'DOJ '  HV-DATE-OF-JOIN
+                  DISPLAY 'SALARY '  HV-SALARY
+                  DISPLAY 'DEPT-ID '  HV-DEPT-ID-TEXT
+                  DISPLAY 'GENDER '  HV-GENDER
+             END-EVALUATE
+           WHEN SQLCODE = +100
+               DISPLAY 'ID '  HV-E-ID 'NOT FOUND'
+           WHEN OTHER
+               DISPLAY ' SELECT FAIL --> ERROR '
+               CALL 'DSNTIAR' USING SQLCA WS05-SQL-ERR WS05-SQL-LRECL
+               DISPLAY WS05-SQL-ERR
+           END-EVALUATE
+           .
+       3211-SELECT-PARA-EXIT.
+              EXIT
+           .
+       3212-DELETE-PARA.
+            MOVE TI001-ID TO HV-E-ID
+            EXEC SQL
+              DELETE FROM EMPLOY2
+              WHERE E_ID = :HV-E-ID
+            END-EXEC.
+            EVALUATE TRUE
+            WHEN SQLCODE = +000
+               DISPLAY 'DELETED'
+            WHEN SQLCODE = +100
+               DISPLAY 'ID '  HV-E-ID 'NOT FOUND'
+            WHEN OTHER
+               DISPLAY ' DELETE  FAIL --> ERROR '
+               CALL 'DSNTIAR' USING SQLCA WS05-SQL-ERR WS05-SQL-LRECL
+               DISPLAY WS05-SQL-ERR
+            END-EVALUATE
+           .
+       3212-DELETE-PARA-EXIT.
+              EXIT
+           .
+       3213-UPDATE-PARA.
+            MOVE TI001-ID TO HV-E-ID
+            EXEC SQL
+              UPDATE EMPLOY2 SET SALARY = SALARY * 1.10
+              WHERE E_ID = :HV-E-ID
+            END-EXEC.
+            EVALUATE TRUE
+            WHEN SQLCODE = +000
+               DISPLAY 'UPDATED'
+            WHEN SQLCODE = +100
+               DISPLAY 'ID '  HV-E-ID 'NOT FOUND'
+            WHEN OTHER
+               DISPLAY ' UPDATE  FAIL --> ERROR '
+               CALL 'DSNTIAR' USING SQLCA WS05-SQL-ERR WS05-SQL-LRECL
+               DISPLAY WS05-SQL-ERR
+            END-EVALUATE
+           .
+       3213-UPDATE-PARA-EXIT.
+              EXIT
+           .
+       3300-CLOS-PARA.
+              CLOSE TI001-PS
+           .
+       3300-CLOS-PARA-EXIT.
+              EXIT
+           .
+

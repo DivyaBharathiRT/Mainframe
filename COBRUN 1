@@ -1,0 +1,8 @@
+//TECN008X JOB NOTIFY=&SYSUID                                           00010002
+//RUN EXEC PGM=CA11G008                         --> MEMBER NAME         00040006
+//STEPLIB DD DSN=TECN008.L1.ISGMF001.LOADLIB,DISP=SHR --> LOADLIB NAME  00050006
+//SYSPRINT DD SYSOUT=*                                                  00060000
+//INPAGTPS DD DSN=TECN008.L1G.AGTCMN.PS2,DISP=SHR                       00080006
+//OUTAGTKS DD DSN=TECN008.L1G.AGTCMN.KSDS,DISP=SHR                      00090006
+//SYSIN DD DUMMY                                                        00100000
+
